@@ -1,0 +1,76 @@
+### clients
+POST http://localhost:8080/clients
+Content-Type: application/json
+
+{
+  "name": "COCO",
+  "email": "ahmed@gmail.com"
+}
+
+### afficher list clients
+GET http://localhost:8080/clients
+
+###
+PUT http://localhost:8080/clients/1
+Content-Type: application/json
+
+{
+  "name": "ahmed ali",
+  "email": "ahmed@gmail.com"
+}
+
+### services
+POST http://localhost:8080/services
+Content-Type: application/json
+
+{
+"name": " dive Service",
+"description": "dive d'authentification "
+
+}
+
+###
+GET http://localhost:8080/services
+
+### Update service
+PUT http://localhost:8080/services/8
+Content-Type: application/json
+
+{
+  "name": "Inventory Service",
+  "description": "Gestion du stock et inventaire"
+}
+
+### update status
+PATCH http://localhost:8080/services/5
+Content-Type: application/json
+
+"UP"
+
+
+### client-services
+POST http://localhost:8080/client-services
+Content-Type: application/json
+
+{
+  "client": { "id" : 8 },
+  "service": { "id" : 4}
+}
+
+### delete
+DELETE localhost:8080/client-services/3
+
+### dependencies
+POST http://localhost:8080/dependencies
+Content-Type: application/json
+
+{
+  "service": { "id": 2 },
+  "dependsOn": { "id": 4 }
+}
+
+###
+DELETE http://localhost:8080/dependencies/12
+
+### service impact
+POST http://localhost:8080/impact/simulate/4

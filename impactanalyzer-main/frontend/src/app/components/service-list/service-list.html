@@ -1,0 +1,20 @@
+<h3>📋 Liste des services</h3>
+
+<table border="1" cellpadding="8" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Nom</th>
+    <th>Description</th>
+    <th>Status</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let service of services">
+    <td>{{ service.id }}</td>
+    <td>{{ service.name }}</td>
+    <td>{{ service.description }}</td>
+    <td>{{ service.status }}</td>
+  </tr>
+  </tbody>
+</table>
