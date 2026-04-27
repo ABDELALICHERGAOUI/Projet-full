@@ -11,6 +11,8 @@
 npm-debug.log
 yarn-error.log
 
+node_modules/
+dist/
 # IDEs and editors
 .idea/
 .project

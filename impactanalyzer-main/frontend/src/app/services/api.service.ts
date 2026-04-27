@@ -5,6 +5,8 @@ import { Service } from '../models/service.model';
 import { Client } from '../models/client.model';
 import { Dependency } from '../models/dependency.model';
 import { ImpactDTO } from '../models/impact.dto.model';
+import { ClientService } from "../models/ClientService.model";
+import {ClientServices} from "../components/client-services/client-services";
 
 @Injectable({
   providedIn: 'root',
@@ -39,8 +41,8 @@ export class ApiService {
     return this.http.patch<void>(`${this.baseUrl}/services/${id}`, status);
   }
 
-  // ========== LIMINAIRES ==========
-  getClients(): Observable<Client[]> {
+  // ========== Clients ==========
+  getAllClients(): Observable<Client[]> {
     return this.http.get<Client[]>(`${this.baseUrl}/clients`);
   }
 
@@ -80,5 +82,18 @@ export class ApiService {
   // ========== IMPACT ==========
   simulateImpact(serviceId: number): Observable<ImpactDTO> {
     return this.http.post<ImpactDTO>(`${this.baseUrl}/impact/simulate/${serviceId}`, {});
+  }
+
+  // ========= ClientService ============
+
+  getAllClientServices(): Observable<ClientService[]> {
+    return this.http.get<ClientService[]>(`${this.baseUrl}/client-services`);
+  }
+  createClientService(cs: ClientService): Observable<ClientService> {
+    return this.http.post<ClientService>(`${this.baseUrl}/client-services`, cs);
+  }
+
+  deleteClientService(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/client-services/${id}`);
   }
 }

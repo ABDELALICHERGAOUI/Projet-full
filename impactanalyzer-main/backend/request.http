@@ -3,8 +3,8 @@ POST http://localhost:8080/clients
 Content-Type: application/json
 
 {
-  "name": "COCO",
-  "email": "ahmed@gmail.com"
+  "name": "jawad safri",
+  "email": "jawadam@gmail.com"
 }
 
 ### afficher list clients
