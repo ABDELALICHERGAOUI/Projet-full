@@ -1,4 +1,105 @@
-<div class="p-3">
-<div class="card-body">
-  <h3>Bienvenue dans notre Application </h3>
-</div></div>
+<div class="dashboard">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <h1 class="dash-title">Tableau de bord</h1>
+      <p class="dash-sub">Bienvenue — voici un aperçu de votre activité</p>
+    </div>
+    <div class="dash-date">{{ today }}</div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stats-grid">
+
+    <div class="stat-card" routerLink="/client">
+      <div class="stat-icon icon-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Total Clients</span>
+        <span class="stat-value">{{ totalClients }}</span>
+      </div>
+      <div class="stat-arrow">→</div>
+    </div>
+
+    <div class="stat-card" routerLink="/service">
+      <div class="stat-icon icon-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Total Services</span>
+        <span class="stat-value">{{ totalServices }}</span>
+      </div>
+      <div class="stat-arrow">→</div>
+    </div>
+
+    <div class="stat-card" routerLink="/ClientService">
+      <div class="stat-icon icon-orange">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Abonnements actifs</span>
+        <span class="stat-value">{{ totalAbonnements }}</span>
+      </div>
+      <div class="stat-arrow">→</div>
+    </div>
+
+  </div>
+
+  <!-- Quick access -->
+  <div class="section-title">Accès rapide</div>
+  <div class="quick-grid">
+
+    <div class="quick-card" routerLink="/client">
+      <div class="quick-icon icon-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div>
+        <p class="quick-title">Gérer les clients</p>
+        <p class="quick-desc">Ajouter, modifier ou supprimer des clients</p>
+      </div>
+    </div>
+
+    <div class="quick-card" routerLink="/service">
+      <div class="quick-icon icon-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        </svg>
+      </div>
+      <div>
+        <p class="quick-title">Gérer les services</p>
+        <p class="quick-desc">Consulter et administrer les services disponibles</p>
+      </div>
+    </div>
+
+    <div class="quick-card" routerLink="/ClientService">
+      <div class="quick-icon icon-orange">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+      </div>
+      <div>
+        <p class="quick-title">Client-Services</p>
+        <p class="quick-desc">Voir les abonnements et associations</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
