@@ -1,0 +1,44 @@
+<div style="padding: 20px;">
+  <div style="margin-bottom: 20px;">
+    <a routerLink="/dependencies/add"
+       style="background: #3B82F6; color: white; text-decoration: none; padding: 10px 15px; border-radius: 6px; display: inline-block;">
+      ➕ Ajouter une dépendance
+    </a>
+  </div>
+
+  <h2>🔗 Liste des dépendances</h2>
+
+  <div *ngIf="isLoading" style="text-align: center; padding: 20px;">
+    Chargement...
+  </div>
+
+  <div *ngIf="!isLoading && dependencies.length === 0" style="text-align: center; padding: 20px;">
+    Aucune dépendance trouvée
+  </div>
+
+  <table *ngIf="!isLoading && dependencies.length > 0" style="width: 100%; border-collapse: collapse;">
+    <thead>
+    <tr style="background: #F3F4F6; border-bottom: 1px solid #ccc;">
+      <th style="padding: 10px;">ID</th>
+      <th style="padding: 10px;">Service</th>
+      <th style="padding: 10px;">Dépend de</th>
+      <th style="padding: 10px;">Poids</th>
+      <th style="padding: 10px;">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let dep of dependencies">
+      <td style="padding: 8px;">{{ dep.id }}</td>
+      <td style="padding: 8px;">{{ dep.service?.name }}</td>
+      <td style="padding: 8px;">{{ dep.dependsOn?.name }}</td>
+      <td style="padding: 8px;">{{ dep.impactWeight }}</td>
+      <td style="padding: 8px;">
+        <button (click)="deleteDependency(dep.id)"
+                style="background: #EF4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+          Supprimer
+        </button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
