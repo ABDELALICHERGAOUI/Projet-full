@@ -1,9 +1,11 @@
 import { Routes } from '@angular/router';
 import { Home } from './components/home/home';
 import { ClientComponent } from './components/client/client';
-import { ServiceListComponent } from './components/service-list/service-list';
+//import { ServiceListComponent } from './components/service-list/service-list';
 import { ClientServices } from './components/client-services/client-services';
 import { Layout } from './components/layout/layout';
+import { Impact } from './components/impact/impact';
+
 
 export const routes: Routes = [
 
@@ -17,8 +19,10 @@ export const routes: Routes = [
     component: Layout,
     children: [
       { path: 'client',        component: ClientComponent    },
-      { path: 'service',       component: ServiceListComponent },
+     // { path: 'service',       component: ServiceListComponent },
       { path: 'ClientService', component: ClientServices     },
+      { path: 'impact', component: Impact }
+
     ]
   },
 

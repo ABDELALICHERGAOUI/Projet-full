@@ -1,5 +1,5 @@
 import { Component, signal } from '@angular/core';
-import { ServiceListComponent } from './components/service-list/service-list';
+//import { ServiceListComponent } from './components/service-list/service-list';
 import { ClientComponent } from './components/client/client';
 import {RouterLink, RouterOutlet} from "@angular/router";
 
