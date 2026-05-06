@@ -1,0 +1,77 @@
+<div style="padding: 20px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Liste des dépendances</h3>
+    <button class="btn btn-primary" (click)="openAddModal()">
+      + Ajouter une dépendance
+    </button>
+  </div>
+  <div *ngIf="isLoading" style="text-align: center; padding: 20px;">
+    Chargement...
+  </div>
+
+  <div *ngIf="!isLoading && dependencies.length === 0" style="text-align: center; padding: 20px;">
+    Aucune dépendance trouvée
+  </div>
+
+  <table *ngIf="!isLoading && dependencies.length > 0" style="width: 100%; border-collapse: collapse;">
+    <thead>
+    <tr style="background: #F3F4F6; border-bottom: 1px solid #ccc;">
+      <th style="padding: 10px;">ID</th>
+      <th style="padding: 10px;">Service</th>
+      <th style="padding: 10px;">Dépend de</th>
+      <th style="padding: 10px;">Poids</th>
+      <th style="padding: 10px;">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let dep of dependencies">
+      <td style="padding: 8px;">{{ dep.id }}</td>
+      <td style="padding: 8px;">{{ dep.service?.name }}</td>
+      <td style="padding: 8px;">{{ dep.dependsOn?.name }}</td>
+      <td style="padding: 8px;">{{ dep.impactWeight }}</td>
+      <td style="padding: 8px;">
+        <button (click)="deleteDependency(dep.id)"
+                style="background: #EF4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+          Supprimer
+        </button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+  <div *ngIf="showModal" class="modal-overlay">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+
+    <h3>Ajouter une dépendance</h3>
+
+    <!-- Service -->
+    <select [(ngModel)]="formDependency.serviceId">
+      <option [ngValue]="null">-- Choisir un service --</option>
+      <option *ngFor="let s of services" [ngValue]="s.id">
+        {{ s.name }}
+      </option>
+    </select>
+
+    <!-- Dépend de -->
+    <select [(ngModel)]="formDependency.dependsOnId">
+      <option [ngValue]="null">-- Dépend de --</option>
+      <option
+        *ngFor="let s of services"
+        [ngValue]="s.id"
+        [disabled]="s.id === formDependency.serviceId">
+        {{ s.name }}
+      </option>
+    </select>
+    <input
+      type="number"
+      [(ngModel)]="formDependency.impactWeight"
+      placeholder="Poids"
+    />
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+      <button type="button" (click)="handleSubmit()">Ajouter</button>
+      <button (click)="closeModal()">Annuler</button>
+    </div>
+
+  </div>
+</div>

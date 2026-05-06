@@ -71,10 +71,9 @@ export class ApiService {
     return this.http.get<Dependency>(`${this.baseUrl}/dependencies/${id}`);
   }
 
-  createDependency(dependency: Dependency): Observable<Dependency> {
+  createDependency(dependency: any): Observable<Dependency> {
     return this.http.post<Dependency>(`${this.baseUrl}/dependencies`, dependency);
   }
-
   deleteDependency(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/dependencies/${id}`);
   }

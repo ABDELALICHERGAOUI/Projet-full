@@ -1,0 +1,183 @@
+<div class="dashboard-wrapper">
+
+  <!-- HEADER -->
+  <div class="dash-header">
+    <div class="header-left">
+      <span class="header-badge">SDIA</span>
+      <div>
+        <h1 class="header-title">Impact Analyzer</h1>
+        <p class="header-sub">Smart Dependency Impact Dashboard</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-pill" [class.online]="!isLoading">
+        <span class="pulse-dot"></span>
+        {{ isLoading ? 'Chargement...' : 'Système actif' }}
+      </div>
+      <div class="header-date">{{ currentDate | date:'EEEE d MMMM yyyy' }}</div>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card" *ngFor="let kpi of kpiCards">
+      <div class="kpi-icon" [style.background]="kpi.gradient">
+        <span class="kpi-emoji">{{ kpi.icon }}</span>
+      </div>
+      <div class="kpi-info">
+        <div class="kpi-value">
+          <span *ngIf="!isLoading">{{ kpi.value }}</span>
+          <span *ngIf="isLoading" class="skeleton-val"></span>
+        </div>
+        <div class="kpi-label">{{ kpi.label }}</div>
+        <div class="kpi-sub">{{ kpi.sub }}</div>
+      </div>
+      <div class="kpi-trend" [class.up]="kpi.trend >= 0">
+        {{ kpi.trend >= 0 ? '↑' : '↓' }} {{ kpi.trendLabel }}
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-grid">
+
+    <!-- LEFT PANEL : Liste des services -->
+    <div class="panel panel-services">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-icon">⚙</span> Services
+        </h2>
+        <span class="panel-count">{{ services.length }} total</span>
+      </div>
+      <div class="panel-body">
+        <div *ngIf="isLoading" class="loading-list">
+          <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
+        </div>
+        <div *ngIf="!isLoading && services.length === 0" class="empty-state">
+          Aucun service enregistré
+        </div>
+        <div class="service-item" *ngFor="let s of services.slice(0,6)">
+          <div class="service-dot" [class]="getStatusClass(s.status)"></div>
+          <div class="service-info">
+            <span class="service-name">{{ s.name }}</span>
+            <span class="service-desc">{{ s.description || 'Aucune description' }}</span>
+          </div>
+          <span class="service-badge" [class]="getStatusClass(s.status)">
+            {{ s.status || 'ACTIF' }}
+          </span>
+        </div>
+        <div *ngIf="!isLoading && services.length > 6" class="see-more" routerLink="/services">
+          Voir les {{ services.length - 6 }} autres →
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER PANEL : Dépendances + Impact -->
+    <div class="panel-column">
+
+      <!-- Dépendances récentes -->
+      <div class="panel panel-deps">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <span class="panel-icon">🔗</span> Dépendances
+          </h2>
+          <span class="panel-count">{{ dependencies.length }} liens</span>
+        </div>
+        <div class="panel-body">
+          <div *ngIf="isLoading" class="loading-list">
+            <div class="skeleton-row" *ngFor="let i of [1,2,3]"></div>
+          </div>
+          <div class="dep-item" *ngFor="let d of dependencies.slice(0,4)">
+            <span class="dep-source">{{ d.service?.name }}</span>
+            <div class="dep-arrow">
+              <div class="dep-line"></div>
+              <span class="dep-weight">{{ d.impactWeight }}</span>
+            </div>
+            <span class="dep-target">{{ d.dependsOn?.name }}</span>
+          </div>
+          <div *ngIf="!isLoading && dependencies.length === 0" class="empty-state">
+            Aucune dépendance configurée
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="panel panel-actions">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <span class="panel-icon">⚡</span> Actions rapides
+          </h2>
+        </div>
+        <div class="actions-grid">
+          <button class="action-btn btn-primary" routerLink="/service">
+            <span class="action-icon">⚙</span>
+            <span>Gérer les Services</span>
+          </button>
+          <button class="action-btn btn-secondary" routerLink="/client">
+            <span class="action-icon">👥</span>
+            <span>Gérer les Clients</span>
+          </button>
+          <button class="action-btn btn-tertiary" routerLink="/dependency">
+            <span class="action-icon">🔗</span>
+            <span>Dépendances</span>
+          </button>
+          <button class="action-btn btn-danger" routerLink="/impact">
+            <span class="action-icon">💥</span>
+            <span>Simuler Impact</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL : Clients -->
+    <div class="panel panel-clients">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-icon">👥</span> Clients
+        </h2>
+        <span class="panel-count">{{ clients.length }} total</span>
+      </div>
+      <div class="panel-body">
+        <div *ngIf="isLoading" class="loading-list">
+          <div class="skeleton-row" *ngFor="let i of [1,2,3,4]"></div>
+        </div>
+        <div class="client-item" *ngFor="let c of clients.slice(0,6)">
+          <div class="client-avatar">
+            {{ c.name?.charAt(0)?.toUpperCase() }}
+          </div>
+          <div class="client-info">
+            <span class="client-name">{{ c.name }}</span>
+            <span class="client-meta">{{ c.email || 'Client #' + c.id }}</span>
+          </div>
+          <div class="client-chevron">›</div>
+        </div>
+        <div *ngIf="!isLoading && clients.length === 0" class="empty-state">
+          Aucun client enregistré
+        </div>
+        <div *ngIf="!isLoading && clients.length > 6" class="see-more" routerLink="/clients">
+          + {{ clients.length - 6 }} clients →
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER BAR -->
+  <div class="footer-bar">
+    <span class="footer-item">
+      <span class="footer-dot green"></span>
+      Backend connecté · localhost:8080
+    </span>
+    <span class="footer-item">
+      <span class="footer-dot blue"></span>
+      Angular {{ angularVersion }}
+    </span>
+    <span class="footer-item">
+      <span class="footer-dot purple"></span>
+      PostgreSQL · Spring Boot
+    </span>
+    <span class="footer-copy">© 2025 SDIA — NTT Data</span>
+  </div>
+
+</div>
