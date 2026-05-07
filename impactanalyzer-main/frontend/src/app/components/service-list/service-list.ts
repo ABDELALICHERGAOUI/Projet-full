@@ -26,12 +26,12 @@ export class ServiceListComponent implements OnInit {
 
   loadServices(): void {
     fetch('http://localhost:8080/services')
-      .then((res) => res.json())
-      .then((data) => {
-        this.services = data;
-        this.cdr.detectChanges();
-      })
-      .catch((err) => console.error(err));
+        .then((res) => res.json())
+        .then((data) => {
+          this.services = data;
+          this.cdr.detectChanges();
+        })
+        .catch((err) => console.error(err));
   }
   openAddModal() {
     this.isEditMode = false;
@@ -63,10 +63,10 @@ export class ServiceListComponent implements OnInit {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(this.formService),
       })
-        .then(() => {
-          this.closeModal();
-          this.loadServices();
-        });
+          .then(() => {
+            this.closeModal();
+            this.loadServices();
+          });
     } else {
       // CREATE
       fetch(`http://localhost:8080/services`, {
@@ -74,18 +74,18 @@ export class ServiceListComponent implements OnInit {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(this.formService),
       })
-        .then(() => {
-          this.closeModal();
-          this.loadServices();
-        });
+          .then(() => {
+            this.closeModal();
+            this.loadServices();
+          });
     }
   }
 
   deleteService(id: number): void {
     if (confirm('Supprimer ce service ?')) {
       fetch(`http://localhost:8080/services/${id}`, { method: 'DELETE' })
-        .then(() => this.loadServices())
-        .catch((err) => console.error(err));
+          .then(() => this.loadServices())
+          .catch((err) => console.error(err));
     }
   }
 
@@ -104,11 +104,11 @@ export class ServiceListComponent implements OnInit {
         description: this.editService.description,
       }),
     })
-      .then(() => {
-        this.editService = null;
-        this.loadServices();
-      })
-      .catch((err) => console.error(err));
+        .then(() => {
+          this.editService = null;
+          this.loadServices();
+        })
+        .catch((err) => console.error(err));
   }
   cancelEdit(): void {
     this.editService = null;
