@@ -6,18 +6,23 @@ import { DependencyListComponent } from './components/dependency-list/dependency
 import { Layout } from './components/layout/layout';
 import { Impact } from './components/impact/impact';
 import {Dashboard} from './components/dashboard/dashboard';
+import { Login } from './components/login/login';
+import { authGuard } from './guards/auth-guard';
 
 
 export const routes: Routes = [
 
-  // Dashboard SANS navbar
-  { path: '', component: Dashboard },
-  { path : 'dashboard' , component : Dashboard},
+  // Page login — publique, sans layout
+  { path: 'login', component: Login },
+  // Dashboard protégé
+  { path: '', component: Dashboard, canActivate: [authGuard] }, // ← ajouté canActivate
+  { path: 'dashboard', component: Dashboard, canActivate: [authGuard] }, // ← ajouté canActivate
 
-  // Pages AVEC navbar à gauche
+  // Pages AVEC navbar  — protégées
   {
     path: '',
     component: Layout,
+    canActivate: [authGuard],
     children: [
       { path: 'client',        component: ClientComponent    },
       { path: 'service',       component: ServiceListComponent },
@@ -28,5 +33,5 @@ export const routes: Routes = [
     ]
   },
 
-  { path: '**', redirectTo: 'dashboard' }
+  { path: '**', redirectTo: 'login' }
 ];

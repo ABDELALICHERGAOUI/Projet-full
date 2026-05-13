@@ -1,5 +1,4 @@
 package com.example.impactanalyzer.config;
-
 import com.example.impactanalyzer.security.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +28,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/services/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess ->

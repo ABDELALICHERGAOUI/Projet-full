@@ -138,7 +138,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  //background: var(--card-accent, linear-gradient(90deg, #2563eb, #7c3aed));
+  /*background: var(--card-accent, linear-gradient(90deg, #2563eb, #7c3aed));*/
   border-radius: 16px 16px 0 0;
 }
 
