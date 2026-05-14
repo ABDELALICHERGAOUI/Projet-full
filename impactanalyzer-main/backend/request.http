@@ -3,8 +3,8 @@ POST http://localhost:8080/clients
 Content-Type: application/json
 
 {
-  "name": "COCO",
-  "email": "ahmed@gmail.com"
+  "name": "jawad safri",
+  "email": "jawadam@gmail.com"
 }
 
 ### afficher list clients
@@ -40,12 +40,14 @@ Content-Type: application/json
   "name": "Inventory Service",
   "description": "Gestion du stock et inventaire"
 }
+### delete service
+DELETE localhost:8080/services/9
 
 ### update status
-PATCH http://localhost:8080/services/5
+PATCH http://localhost:8080/services/6
 Content-Type: application/json
 
-"UP"
+"DOWN"
 
 
 ### client-services
@@ -70,7 +72,7 @@ Content-Type: application/json
 }
 
 ###
-DELETE http://localhost:8080/dependencies/12
+DELETE http://localhost:8080/dependencies/9
 
 ### service impact
-POST http://localhost:8080/impact/simulate/4
+POST http://localhost:8080/impact/simulate/1

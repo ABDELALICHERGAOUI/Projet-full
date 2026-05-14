@@ -1,18 +1,37 @@
 import { Routes } from '@angular/router';
-import { DashboardComponent } from './pages/dashboard/dashboard';
+import { ClientComponent } from './components/client/client';
 import { ServiceListComponent } from './components/service-list/service-list';
-import { AddServiceComponent } from './pages/add-service/add-service';
+import { ClientServices } from './components/client-services/client-services';
 import { DependencyListComponent } from './components/dependency-list/dependency-list';
-import { AddDependencyComponent } from './pages/add-dependency/add-dependency';
-import { ImpactComponent } from './pages/impact/impact.component';
+import { Layout } from './components/layout/layout';
+import { Impact } from './components/impact/impact';
+import {Dashboard} from './components/dashboard/dashboard';
+import { Login } from './components/login/login';
+import { authGuard } from './guards/auth-guard';
+
 
 export const routes: Routes = [
-  { path: '', component: DashboardComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'services', component: ServiceListComponent },
-  { path: 'services/add', component: AddServiceComponent },
-  { path: 'dependencies', component: DependencyListComponent },
-  { path: 'dependencies/add', component: AddDependencyComponent },
-  { path: 'impact', component: ImpactComponent },
-];
 
+  // Page login — publique, sans layout
+  { path: 'login', component: Login },
+  // Dashboard protégé
+  { path: '', component: Dashboard, canActivate: [authGuard] }, // ← ajouté canActivate
+  { path: 'dashboard', component: Dashboard, canActivate: [authGuard] }, // ← ajouté canActivate
+
+  // Pages AVEC navbar  — protégées
+  {
+    path: '',
+    component: Layout,
+    canActivate: [authGuard],
+    children: [
+      { path: 'client',        component: ClientComponent    },
+      { path: 'service',       component: ServiceListComponent },
+      { path: 'dependency',       component: DependencyListComponent },
+      { path: 'ClientService', component: ClientServices     },
+      { path: 'impact', component: Impact }
+
+    ]
+  },
+
+  { path: '**', redirectTo: 'login' }
+];
