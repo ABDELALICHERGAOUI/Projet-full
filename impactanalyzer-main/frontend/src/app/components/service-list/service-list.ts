@@ -88,12 +88,6 @@ export class ServiceListComponent implements OnInit {
         .catch((err) => console.error(err));
     }
   }
-
-  /*openEdit(service: any): void {
-    // Copie du service pour modification
-    this.editService = { ...service };
-  }*/
-
   updateService(): void {
     if (!this.editService) return;
     fetch(`http://localhost:8080/services/${this.editService.id}`, {
