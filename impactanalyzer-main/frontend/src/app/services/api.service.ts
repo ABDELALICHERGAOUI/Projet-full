@@ -33,8 +33,12 @@ export class ApiService {
     return this.http.put<Service>(`${this.baseUrl}/services/${id}`, service);
   }
 
-  updateServiceStatus(id: number, status: string): Observable<Service> {
-    return this.http.patch<Service>(`${this.baseUrl}/services/${id}`, { status: status });
+  deleteService(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/services/${id}`);
+  }
+
+  updateServiceStatus(id: number, status: string): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/services/${id}`, status);
   }
 
   // ========== Clients ==========
@@ -72,19 +76,6 @@ export class ApiService {
   }
   deleteDependency(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/dependencies/${id}`);
-  }
-
-  // ========== CLIENT-SERVICES ==========
-  getClientServices(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/client-services`);
-  }
-
-  createClientService(clientService: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/client-services`, clientService);
-  }
-
-  deleteClientService(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/client-services/${id}`);
   }
 
   // ========== IMPACT ==========
