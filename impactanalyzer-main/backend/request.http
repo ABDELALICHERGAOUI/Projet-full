@@ -4,7 +4,9 @@ Content-Type: application/json
 
 {
   "name": "jawad safri",
-  "email": "jawadam@gmail.com"
+  "email": "ahmed@gmail.com",
+  "segment": "STANDARD",
+  "region": "Africa"
 }
 
 ### afficher list clients
@@ -75,4 +77,4 @@ Content-Type: application/json
 DELETE http://localhost:8080/dependencies/9
 
 ### service impact
-POST http://localhost:8080/impact/simulate/1
+POST http://localhost:8080/impact/simulate/4

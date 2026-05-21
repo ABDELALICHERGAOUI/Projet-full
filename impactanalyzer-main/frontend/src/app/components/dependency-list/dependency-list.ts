@@ -21,7 +21,8 @@ export class DependencyListComponent implements OnInit {
   formDependency: any = {
     serviceId: null,
     dependsOnId: null,
-    impactWeight: 1
+    criticality: 'MEDIUM',
+    dependencyType: 'SYNC_API'
   };
 
   selectedDependencyId: number | null = null;

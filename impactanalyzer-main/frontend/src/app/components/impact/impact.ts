@@ -64,7 +64,7 @@ export class Impact implements OnInit{
     const edges: any[] = [];
     const nodeIds = new Set<string>();
 
-    // Nœud du service défaillant
+    // Nœud du service en panne
     nodes.push({
       id: impact.failedServiceName,
       label: impact.failedServiceName,
@@ -75,14 +75,12 @@ export class Impact implements OnInit{
     });
     nodeIds.add(impact.failedServiceName);
 
-    // Construire le graphe à partir des chemins d'impact
+    // ✅ FIX : utiliser ' → ' (Unicode) comme le backend
     impact.impactPaths.forEach(path => {
-      const parts = path.split(' -> ');
-      // Résoudre les IDs en noms de services
-      parts.forEach((part, i) => {
-        const label = isNaN(Number(part)) ? part : (
-          this.services.find(s => s.id == Number(part))?.name || `Service ${part}`
-        );
+      const parts = path.split(' → ');  // ← CORRECTION ICI
+
+      parts.forEach((label, i) => {
+        // ✅ Plus besoin de résoudre les IDs — c'est déjà des noms
         if (!nodeIds.has(label)) {
           const isLast = i === parts.length - 1;
           nodes.push({
@@ -90,23 +88,23 @@ export class Impact implements OnInit{
             label: label,
             color: {
               background: isLast ? '#f97316' : '#f59e0b',
-              border: isLast ? '#c2410c' : '#b45309'
+              border:     isLast ? '#c2410c' : '#b45309'
             },
             font: { color: '#fff' },
             shape: 'ellipse'
           });
           nodeIds.add(label);
         }
+
+        // Ajouter le lien entre le nœud précédent et celui-ci
         if (i > 0) {
-          const prevLabel = isNaN(Number(parts[i - 1])) ? parts[i - 1] : (
-            this.services.find(s => s.id == Number(parts[i - 1]))?.name || `Service ${parts[i - 1]}`
-          );
+          const prevLabel = parts[i - 1]; // ✅ directement le nom
           edges.push({ from: prevLabel, to: label, arrows: 'to' });
         }
       });
     });
 
-    // Si pas de chemins, afficher juste les services impactés
+    // Si pas de chemins → afficher services directement
     if (impact.impactPaths.length === 0) {
       impact.impactedServices.forEach(name => {
         if (!nodeIds.has(name)) {
@@ -121,19 +119,30 @@ export class Impact implements OnInit{
       });
     }
 
-    const data = {
-      nodes: new DataSet(nodes),
-      edges: new DataSet(edges)
-    };
-
     const options: Options = {
-      layout: { hierarchical: { direction: 'LR', sortMethod: 'directed', levelSeparation: 180 } },
+      layout: {
+        hierarchical: {
+          direction: 'LR',
+          sortMethod: 'directed',
+          levelSeparation: 200,   // ✅ plus d'espace entre niveaux
+          nodeSpacing: 120        // ✅ plus d'espace entre nœuds
+        }
+      },
       physics: { enabled: false },
-      edges: { color: '#6b7280', smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 } },
-      nodes: { margin: { top: 10, right: 10, bottom: 10, left: 10 } }
+      edges: {
+        color: '#6b7280',
+        smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 }
+      },
+      nodes: {
+        margin: { top: 10, right: 15, bottom: 10, left: 15 }
+      }
     };
 
-    this.network = new Network(this.graphContainer.nativeElement, data, options);
+    this.network = new Network(
+      this.graphContainer.nativeElement,
+      { nodes: new DataSet(nodes), edges: new DataSet(edges) },
+      options
+    );
   }
 
   getSeverityClass(): string {

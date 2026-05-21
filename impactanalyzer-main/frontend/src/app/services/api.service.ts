@@ -95,4 +95,18 @@ export class ApiService {
   deleteClientService(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/client-services/${id}`);
   }
+
+  // api.service.ts — ajouter ces méthodes
+  getDashboardStats() {
+    return this.http.get(`${this.baseUrl}/dashboard/stats`);
+  }
+  getTopCritical() {
+    return this.http.get<any[]>(`${this.baseUrl}/dashboard/top-critical`);
+  }
+  getTierDistribution() {
+    return this.http.get(`${this.baseUrl}/dashboard/tier-distribution`);
+  }
+  getTopology() {
+    return this.http.get(`${this.baseUrl}/dashboard/topology`);
+  }
 }

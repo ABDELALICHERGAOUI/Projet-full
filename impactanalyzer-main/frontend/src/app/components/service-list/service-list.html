@@ -94,8 +94,25 @@
 
     <input [(ngModel)]="formService.name" placeholder="Nom" />
     <input [(ngModel)]="formService.description" placeholder="Description" />
-
-    <select [(ngModel)]="formService.status">
+    <!-- service-form.html -->
+      <select [(ngModel)]="formService.tier" name="tier" required>
+      <option value="CRITICAL">🔴 CRITICAL</option>
+      <option value="HIGH">🟠 HIGH</option>
+      <option value="MEDIUM">🟡 MEDIUM</option>
+      <option value="LOW">🟢 LOW</option>
+    </select>
+    <input
+      [(ngModel)]="formService.ownerTeam"
+      name="ownerTeam"
+      placeholder="Ex: Team Backend"
+    />
+    <input
+      type="number"
+      [(ngModel)]="formService.sla"
+      name="sla"
+      placeholder="Ex: 99.9"
+    />
+    <select type="hidden" [(ngModel)]="formService.status">
       <option value="UP">UP</option>
       <option value="DOWN">DOWN</option>
     </select>

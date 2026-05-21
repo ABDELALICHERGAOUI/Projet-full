@@ -17,7 +17,10 @@ export const routes: Routes = [
   // Dashboard protégé
   { path: '', component: Dashboard, canActivate: [authGuard] }, // ← ajouté canActivate
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] }, // ← ajouté canActivate
+// app.routes.ts
 
+  //{ path: 'topology',   component: Topology },
+// (tes routes CRUD et simulation existent déjà)
   // Pages AVEC navbar  — protégées
   {
     path: '',
