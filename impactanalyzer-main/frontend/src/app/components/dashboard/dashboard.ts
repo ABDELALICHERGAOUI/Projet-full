@@ -1,40 +1,55 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import {RouterModule} from '@angular/router';
-import {ApiService} from '../../services/api.service';
+import { RouterModule, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth';
 
 @Component({
-   selector: 'app-dashboard',
+  selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePipe],
+  imports: [CommonModule, RouterModule, DatePipe, FormsModule],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
 })
-export class Dashboard implements OnInit{
+export class Dashboard implements OnInit {
   services: any[] = [];
   clients: any[] = [];
   dependencies: any[] = [];
   clientServices: any[] = [];
   isLoading = true;
   currentDate = new Date();
-  angularVersion = '19+';
+
+  previewServiceId: number | null = null;
+  impactPreviewScore: number | null = null;
 
   kpiCards: any[] = [];
 
   constructor(
-    private apiService: ApiService,
-    private cdr: ChangeDetectorRef
+      private apiService: ApiService,
+      private cdr: ChangeDetectorRef,
+      private authService: AuthService,
+      private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadAll();
   }
 
+  navigateTo(path: string): void {
+    this.router.navigate([path]);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
   loadAll(): void {
     this.isLoading = true;
     let loaded = 0;
     const total = 4;
-    const done = () => {
+    const done = (): void => {
       loaded++;
       if (loaded === total) {
         this.isLoading = false;
@@ -44,23 +59,36 @@ export class Dashboard implements OnInit{
     };
 
     this.apiService.getServices().subscribe({
-      next: (data) => { this.services = data; done(); },
+      next: (data: any[]) => { this.services = data; done(); },
       error: () => done(),
     });
 
     this.apiService.getAllClients().subscribe({
-      next: (data) => { this.clients = data; done(); },
+      next: (data: any[]) => { this.clients = data; done(); },
       error: () => done(),
     });
 
     this.apiService.getDependencies().subscribe({
-      next: (data) => { this.dependencies = data; done(); },
+      next: (data: any[]) => { this.dependencies = data; done(); },
       error: () => done(),
     });
 
     this.apiService.getAllClientServices().subscribe({
-      next: (data) => { this.clientServices = data; done(); },
+      next: (data: any[]) => { this.clientServices = data; done(); },
       error: () => done(),
+    });
+  }
+
+  loadImpactPreview(): void {
+    if (!this.previewServiceId) return;
+    this.apiService.simulateImpact(this.previewServiceId).subscribe({
+      next: (data: any) => {
+        this.impactPreviewScore = Math.round(data.impactScore || 0);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.impactPreviewScore = null;
+      },
     });
   }
 
@@ -68,39 +96,31 @@ export class Dashboard implements OnInit{
     this.kpiCards = [
       {
         icon: '⚙',
-        label: 'Services',
+        label: 'SERVICES',
         value: this.services.length,
-        sub: 'dans le système',
-        gradient: 'linear-gradient(135deg, #1e3a5f, #2563eb)',
+        sub: 'actifs',
         trend: this.services.length,
-        trendLabel: 'enregistrés',
       },
       {
         icon: '👥',
-        label: 'Clients',
+        label: 'CLIENTS',
         value: this.clients.length,
-        sub: 'utilisateurs actifs',
-        gradient: 'linear-gradient(135deg, #1a3a2a, #16a34a)',
+        sub: 'enregistrés',
         trend: this.clients.length,
-        trendLabel: 'enregistrés',
       },
       {
         icon: '🔗',
-        label: 'Dépendances',
+        label: 'DEPENDENCIES',
         value: this.dependencies.length,
-        sub: 'liens de dépendance',
-        gradient: 'linear-gradient(135deg, #3b1a5f, #7c3aed)',
+        sub: 'liens',
         trend: this.dependencies.length,
-        trendLabel: 'configurées',
       },
       {
-        icon: '💥',
-        label: 'Associations',
+        icon: '📎',
+        label: 'LINKS',
         value: this.clientServices.length,
-        sub: 'client ↔ service',
-        gradient: 'linear-gradient(135deg, #5f1a1a, #dc2626)',
+        sub: 'associations',
         trend: this.clientServices.length,
-        trendLabel: 'actives',
       },
     ];
   }
