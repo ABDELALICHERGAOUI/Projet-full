@@ -1,7 +1,8 @@
 package com.example.impactanalyzer.service;
 
-import com.example.impactanalyzer.model.Dependency;
-import com.example.impactanalyzer.model.ServiceEntity;
+import com.example.impactanalyzer.dto.DependencyDTO;
+import com.example.impactanalyzer.entity.Dependency;
+import com.example.impactanalyzer.entity.ServiceEntity;
 import com.example.impactanalyzer.repository.DependencyRepository;
 import com.example.impactanalyzer.repository.ServiceRepository;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,9 @@ public class DependencyServiceImpl {
                 .orElseThrow(() -> new RuntimeException("Dépendance non trouvée avec l'id: " + id));
     }
 
-    public Dependency createDependency(Dependency dependency) {
-        Long serviceId = dependency.getService().getId();
-        Long dependsOnId = dependency.getDependsOn().getId();
+    public Dependency createDependency(DependencyDTO dto) {
+        Long serviceId = dto.getServiceId();
+        Long dependsOnId = dto.getDependsOnId();
 
         ServiceEntity service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new RuntimeException("Service non trouvé avec l'id: " + serviceId));
@@ -40,9 +41,10 @@ public class DependencyServiceImpl {
         if (serviceId.equals(dependsOnId)) {
             throw new RuntimeException("Un service ne peut pas dépendre de lui-même");
         }
-
+        Dependency dependency = new Dependency();
         dependency.setService(service);
         dependency.setDependsOn(dependsOn);
+        //dependency.setImpactWeight((int) dto.getImpactWeight());
 
         return dependencyRepository.save(dependency);
     }

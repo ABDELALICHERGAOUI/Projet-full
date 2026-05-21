@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Service } from '../models/service.model';
 import { Client } from '../models/client.model';
 import { Dependency } from '../models/dependency.model';
 import { ImpactDTO } from '../models/impact.dto.model';
+import { ClientService } from "../models/ClientService.model";
 
 @Injectable({
   providedIn: 'root',
@@ -35,8 +36,8 @@ export class ApiService {
     return this.http.patch<Service>(`${this.baseUrl}/services/${id}`, { status: status });
   }
 
-  // ========== LIMINAIRES ==========
-  getClients(): Observable<Client[]> {
+  // ========== Clients ==========
+  getAllClients(): Observable<Client[]> {
     return this.http.get<Client[]>(`${this.baseUrl}/clients`);
   }
 
@@ -68,7 +69,6 @@ export class ApiService {
   createDependency(dependency: any): Observable<Dependency> {
     return this.http.post<Dependency>(`${this.baseUrl}/dependencies`, dependency);
   }
-
   deleteDependency(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/dependencies/${id}`);
   }
@@ -89,5 +89,24 @@ export class ApiService {
   // ========== IMPACT ==========
   simulateImpact(serviceId: number): Observable<ImpactDTO> {
     return this.http.post<ImpactDTO>(`${this.baseUrl}/impact/simulate/${serviceId}`, {});
+  }
+
+  // ========= ClientService ============
+
+  getAllClientServices(): Observable<ClientService[]> {
+    return this.http.get<ClientService[]>(`${this.baseUrl}/client-services`);
+  }
+  createClientService(cs: ClientService): Observable<ClientService> {
+    return this.http.post<ClientService>(`${this.baseUrl}/client-services`, cs);
+  }
+
+  deleteClientService(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/client-services/${id}`);
+  }
+// ========== AUTH ==========
+  changePassword(data: { oldPassword: string; newPassword: string }): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post<any>(`${this.baseUrl}/auth/change-password`, data, { headers });
   }
 }

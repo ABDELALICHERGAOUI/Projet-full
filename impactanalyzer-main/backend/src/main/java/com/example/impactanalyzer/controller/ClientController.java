@@ -1,6 +1,6 @@
 package com.example.impactanalyzer.controller;
 
-import com.example.impactanalyzer.model.Client;
+import com.example.impactanalyzer.entity.Client;
 import com.example.impactanalyzer.service.ClientServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

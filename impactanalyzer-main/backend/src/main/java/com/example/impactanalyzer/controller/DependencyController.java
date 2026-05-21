@@ -1,6 +1,7 @@
 package com.example.impactanalyzer.controller;
 
-import com.example.impactanalyzer.model.Dependency;
+import com.example.impactanalyzer.dto.DependencyDTO;
+import com.example.impactanalyzer.entity.Dependency;
 import com.example.impactanalyzer.service.DependencyServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +30,8 @@ public class DependencyController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Dependency createDependency(@RequestBody Dependency dependency) {
-        return dependencyService.createDependency(dependency);
+    public Dependency createDependency(@RequestBody DependencyDTO dto) {
+        return dependencyService.createDependency(dto);
     }
 
     @DeleteMapping("/{id}")

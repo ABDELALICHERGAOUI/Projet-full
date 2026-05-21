@@ -1,0 +1,94 @@
+<div class="impact-page">
+  <h1 class="page-title">🔍 Simulateur d'Impact</h1>
+
+  <!-- Sélection du service -->
+  <div class="card simulation-card">
+    <h2>Choisir un service à simuler en panne</h2>
+    <div class="select-row">
+      <select [(ngModel)]="selectedServiceId" class="service-select">
+        <option [ngValue]="null" disabled>-- Sélectionner un service --</option>
+        <option *ngFor="let s of services" [ngValue]="s.id">{{ s.name }}</option>
+      </select>
+      <button (click)="simulate()" [disabled]="!selectedServiceId || loading" class="btn-simulate">
+        <span *ngIf="!loading">⚡ Simuler</span>
+        <span *ngIf="loading">⏳ Calcul...</span>
+      </button>
+    </div>
+    <p *ngIf="error" class="error-msg">{{ error }}</p>
+  </div>
+
+  <!-- Résultats -->
+  <div *ngIf="impactResult" class="results-grid">
+
+    <!-- KPI Cards -->
+    <div class="card kpi-card">
+      <div class="kpi-icon">💥</div>
+      <div class="kpi-value">{{ impactResult.failedServiceName }}</div>
+      <div class="kpi-label">Service en panne</div>
+    </div>
+
+    <div class="card kpi-card">
+      <div class="kpi-icon">🔧</div>
+      <div class="kpi-value">{{ impactResult.totalServicesImpacted }}</div>
+      <div class="kpi-label">Services impactés</div>
+    </div>
+
+    <div class="card kpi-card">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-value">{{ impactResult.totalClientsImpacted }}</div>
+      <div class="kpi-label">Clients affectés</div>
+    </div>
+
+    <div class="card kpi-card">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-value">{{ impactResult.impactScore | number:'1.0-1' }}%</div>
+      <div class="kpi-label">Blast Radius</div>
+      <span [class]="'severity-badge ' + getSeverityClass()">{{ impactResult.severity }}</span>
+    </div>
+
+    <!-- Graphe -->
+    <div class="card graph-card">
+      <h2>🗺️ Graphe de propagation</h2>
+      <div class="graph-legend">
+        <span class="legend-item"><span class="dot dot-red"></span> Service en panne</span>
+        <span class="legend-item"><span class="dot dot-orange"></span> Service impacté</span>
+      </div>
+      <div #graphContainer class="graph-container"></div>
+    </div>
+
+    <!-- Chemins d'impact -->
+    <div class="card paths-card">
+      <h2>🛤️ Chemins de propagation</h2>
+      <div *ngIf="impactResult.impactPaths.length === 0" class="empty-msg">
+        Aucun chemin de propagation détecté.
+      </div>
+      <ul class="paths-list">
+        <li *ngFor="let path of impactResult.impactPaths" class="path-item">
+          <span class="path-arrow">→</span> {{ path }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Listes impactées -->
+    <div class="card list-card">
+      <h2>⚙️ Services impactés</h2>
+      <div *ngIf="impactResult.impactedServices.length === 0" class="empty-msg">Aucun</div>
+      <ul class="impact-list">
+        <li *ngFor="let s of impactResult.impactedServices" class="impact-item service-item">
+          {{ s }}
+        </li>
+      </ul>
+    </div>
+
+    <div class="card list-card">
+      <h2>👤 Clients impactés</h2>
+      <div *ngIf="impactResult.impactedClients.length === 0" class="empty-msg">Aucun</div>
+      <ul class="impact-list">
+        <li *ngFor="let c of impactResult.impactedClients" class="impact-item client-item">
+          {{ c }}
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</div>
