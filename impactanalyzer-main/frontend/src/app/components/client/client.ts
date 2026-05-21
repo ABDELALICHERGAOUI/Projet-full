@@ -3,7 +3,6 @@ import { Client } from '../../models/client.model';
 import { ApiService } from '../../services/api.service';
 import { CommonModule } from '@angular/common';
 import {FormsModule} from '@angular/forms';
-
 @Component({
   selector: 'app-client',
   imports: [CommonModule,FormsModule],
@@ -19,7 +18,12 @@ export class ClientComponent implements OnInit {
   // ---- Modal ----
   showModal = false;
   isEditMode = false;
-  formClient: Partial<Client> = { name: '', email: '' };
+  formClient: Partial<Client> = {
+    name: '',
+    email: '',
+    segment: 'STANDARD',
+    region: ''
+  };
   selectedClientId: number | null = null
 
   constructor(

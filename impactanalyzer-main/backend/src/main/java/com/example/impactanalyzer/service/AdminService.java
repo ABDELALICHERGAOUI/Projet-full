@@ -1,6 +1,6 @@
 package com.example.impactanalyzer.service;
 
-import com.example.impactanalyzer.model.Admin;
+import com.example.impactanalyzer.entity.Admin;
 import com.example.impactanalyzer.repository.AdminRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

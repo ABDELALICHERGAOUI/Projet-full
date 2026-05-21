@@ -1,47 +1,44 @@
 package com.example.impactanalyzer.service;
 
+import com.example.impactanalyzer.entity.*;
+import com.example.impactanalyzer.repository.*;
+import com.example.impactanalyzer.enums.*;
 import com.example.impactanalyzer.dto.ImpactDTO;
-import com.example.impactanalyzer.model.ClientService;
-import com.example.impactanalyzer.model.Dependency;
-import com.example.impactanalyzer.model.ServiceEntity;
-import com.example.impactanalyzer.model.ServiceStatus;
-import com.example.impactanalyzer.repository.ClientRepository;
-import com.example.impactanalyzer.repository.ClientServiceRepository;
-import com.example.impactanalyzer.repository.DependencyRepository;
-import com.example.impactanalyzer.repository.ServiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 
 import java.util.*;
 
 @Service
 public class ImpactService {
 
-
-    @Autowired
-    private ClientServiceRepository clientServiceRepository;
-
-    @Autowired
-    private DependencyRepository dependencyRepository;
-
-    @Autowired
-    private ServiceRepository serviceRepository;
+    @Autowired private ClientServiceRepository clientServiceRepository;
+    @Autowired private DependencyRepository dependencyRepository;
+    @Autowired private ServiceRepository serviceRepository;
+    @Autowired private ClientRepository clientRepository;
 
     public ImpactDTO simulateImpact(Long serviceId) {
 
         ServiceEntity failedService = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new RuntimeException("Service not found"));
-        // construire graphe
+
+        // ── 1. Construire le graphe ──────────────────────────
+        // Map : serviceId → liste des services qui dépendent de lui
+        // ET Map : serviceId → dépendance (pour récupérer criticality)
         Map<Long, List<Long>> graph = new HashMap<>();
+        Map<String, DependencyCriticality> edgeCriticality = new HashMap<>();
 
         for (Dependency d : dependencyRepository.findAll()) {
-            Long dependsOn = d.getDependsOn().getId();
-            Long service = d.getService().getId();
+            Long from = d.getDependsOn().getId(); // si ce service tombe
+            Long to   = d.getService().getId();   // → ce service est impacté
+            graph.computeIfAbsent(from, k -> new ArrayList<>()).add(to);
 
-            graph.computeIfAbsent(dependsOn, k -> new ArrayList<>()).add(service);
+            // clé "from->to" pour retrouver la criticité de ce lien
+            edgeCriticality.put(from + "->" + to, d.getCriticality());
         }
 
-        // BFS
+        // ── 2. BFS ──────────────────────────────────────────
         Set<Long> visited = new HashSet<>();
         Queue<Long> queue = new LinkedList<>();
         Map<Long, Long> parent = new HashMap<>();
@@ -51,97 +48,119 @@ public class ImpactService {
 
         while (!queue.isEmpty()) {
             Long current = queue.poll();
-
-            List<Long> neighbors = graph.getOrDefault(current, new ArrayList<>());
-
-            for (Long n : neighbors) {
-                if (!visited.contains(n)) {
-                    visited.add(n);
-                    parent.put(n, current);
-                    queue.add(n);
+            for (Long neighbor : graph.getOrDefault(current, new ArrayList<>())) {
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    parent.put(neighbor, current);
+                    queue.add(neighbor);
                 }
             }
         }
+        visited.remove(serviceId);
 
-        visited.remove(serviceId); // enlever le service initial
-
+        // ── 3. Chemins de propagation (fix bug noms) ─────────
         List<String> impactPaths = new ArrayList<>();
-
         for (Long node : visited) {
-
-            // vérifier si c'est une feuille (pas de voisins)
-            List<Long> neighbors = graph.getOrDefault(node, new ArrayList<>());
-
-            if (neighbors.isEmpty()) { // ✅ feuille
-
+            if (graph.getOrDefault(node, new ArrayList<>()).isEmpty()) {
                 List<Long> path = new ArrayList<>();
                 Long current = node;
-
-                // remonter jusqu'à la racine
                 while (current != null) {
                     path.add(current);
                     current = parent.get(current);
                 }
-
                 Collections.reverse(path);
 
-                // convertir en noms des services
+                // ✅ FIX : afficher les NOMS, pas les IDs
                 String pathStr = path.stream()
-                        .map(String::valueOf)
-                        //.map(id -> serviceRepository.findById(id).get().getName())
-                        .reduce((a, b) -> a + " -> " + b)
+                        .map(id -> serviceRepository.findById(id)
+                                .map(ServiceEntity::getName)
+                                .orElse("Service#" + id))
+                        .reduce((a, b) -> a + " → " + b)
                         .orElse("");
 
                 impactPaths.add(pathStr);
             }
         }
 
-        // récupérer services impactés
-        List<String> impactedServices = visited.stream()
-                .map(id -> serviceRepository.findById(id).get().getName())
+        // ── 4. Services impactés ─────────────────────────────
+        List<ServiceEntity> impactedServiceEntities = visited.stream()
+                .map(id -> serviceRepository.findById(id).get())
                 .toList();
 
-        // récupérer clients impactés
-        Set<String> clients = new HashSet<>();
+        List<String> impactedServiceNames = impactedServiceEntities.stream()
+                .map(ServiceEntity::getName)
+                .toList();
 
+        // ── 5. Clients impactés ──────────────────────────────
+        Set<Client> impactedClientSet = new HashSet<>();
         for (ClientService cs : clientServiceRepository.findAll()) {
-            if (visited.contains(cs.getService().getId())
-                    || cs.getService().getId().equals(serviceId)) {
-                clients.add(cs.getClient().getName());
+            Long csServiceId = cs.getService().getId();
+            if (visited.contains(csServiceId) || csServiceId.equals(serviceId)) {
+                impactedClientSet.add(cs.getClient());
             }
         }
 
-        // calcul score
-        // 1. Nombre total de services UP
-        long totalServices = serviceRepository.findAll().stream()
-                .filter(s -> s.getStatus() == ServiceStatus.UP)
-                .count();
+        // ── 6. CALCUL DU SCORE PONDÉRÉ ───────────────────────
+        double weightedScore = 0.0;
 
-        // 2. Nombre de services impactés
-        int impactedCount = visited.size();
+        for (ServiceEntity svc : impactedServiceEntities) {
 
-        // 3. Score en pourcentage (blast radius)
-        double impactScore = totalServices > 0
-                ? (impactedCount * 100.0 / totalServices)
+            // Poids du tier du service impacté
+            int tierWeight = switch (svc.getTier()) {
+                case CRITICAL -> 4;
+                case HIGH     -> 3;
+                case MEDIUM   -> 2;
+                case LOW      -> 1;
+            };
+
+            // Poids de la criticité du lien (dépendance) qui mène à ce service
+            Long parentId = parent.get(svc.getId());
+            int critWeight = 2; // MEDIUM par défaut
+            if (parentId != null) {
+                DependencyCriticality crit = edgeCriticality
+                        .getOrDefault(parentId + "->" + svc.getId(), DependencyCriticality.MEDIUM);
+                critWeight = switch (crit) {
+                    case HIGH   -> 3;
+                    case MEDIUM -> 2;
+                    case LOW    -> 1;
+                };
+            }
+
+            weightedScore += tierWeight * critWeight;
+        }
+
+        // Bonus clients VIP
+        for (Client c : impactedClientSet) {
+            weightedScore += (c.getSegment() == ClientSegment.VIP) ? 2 : 1;
+        }
+
+        // Normalisation en pourcentage
+        // poids max théorique = (nbServices × 4 × 3) + (nbClients × 2)
+        long totalServices = serviceRepository.count();
+        long totalClients  = clientRepository.count();
+        double maxPossible = (totalServices * 4 * 3) + (totalClients * 2);
+
+        double impactScore = maxPossible > 0
+                ? Math.min((weightedScore / maxPossible) * 100, 100)
                 : 0.0;
 
+        // Sévérité
         String severity;
+        if (impactScore == 0)        severity = "NONE";
+        else if (impactScore <= 25)  severity = "LOW";
+        else if (impactScore <= 50)  severity = "MEDIUM";
+        else if (impactScore <= 75)  severity = "HIGH";
+        else                         severity = "CRITICAL";
 
-        if (impactScore == 0) severity = "NONE";
-        else if (impactScore <= 25) severity = "LOW";
-        else if (impactScore <= 50) severity = "MEDIUM";
-        else if (impactScore <= 75) severity = "HIGH";
-        else severity = "CRITICAL";
-
-        // construire DTO
+        // ── 7. Construire et retourner le DTO ────────────────
         ImpactDTO dto = new ImpactDTO();
-        dto.setFailedServiceName(failedService.getName());
-        dto.setImpactedServices(impactedServices);
-        dto.setImpactedClients(new ArrayList<>(clients));
-        dto.setImpactScore(impactScore);
         dto.setFailedServiceId(serviceId);
-        dto.setTotalServicesImpacted(impactedServices.size());
-        dto.setTotalClientsImpacted(clients.size());
+        dto.setFailedServiceName(failedService.getName());
+        dto.setImpactedServices(impactedServiceNames);
+        dto.setImpactedClients(impactedClientSet.stream().map(Client::getName).toList());
+        dto.setImpactScore(impactScore);
+        dto.setTotalServicesImpacted(impactedServiceNames.size());
+        dto.setTotalClientsImpacted(impactedClientSet.size());
         dto.setImpactPaths(impactPaths);
         dto.setSeverity(severity);
 

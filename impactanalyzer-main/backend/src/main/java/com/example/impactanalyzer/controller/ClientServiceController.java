@@ -1,6 +1,6 @@
 package com.example.impactanalyzer.controller;
 
-import com.example.impactanalyzer.model.ClientService;
+import com.example.impactanalyzer.entity.ClientService;
 import com.example.impactanalyzer.repository.ClientServiceRepository;
 import org.springframework.web.bind.annotation.*;
 

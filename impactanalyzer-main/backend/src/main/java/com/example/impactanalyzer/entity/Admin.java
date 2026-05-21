@@ -1,4 +1,4 @@
-package com.example.impactanalyzer.model;
+package com.example.impactanalyzer.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

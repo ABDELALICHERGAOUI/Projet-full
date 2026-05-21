@@ -1,6 +1,6 @@
 package com.example.impactanalyzer.repository;
 
-import com.example.impactanalyzer.model.Admin;
+import com.example.impactanalyzer.entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

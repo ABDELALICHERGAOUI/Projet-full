@@ -11,18 +11,20 @@
     <table class="table">
       <thead>
       <tr>
-        <th>ID</th>
         <th>Nom</th>
         <th>Email</th>
+        <th>Segment</th>
+        <th>Region</th>
         <th>ACTION</th>
       </tr>
       </thead>
       <tbody>
         @for (client of clients; track client.id) {
           <tr>
-            <td>{{ client.id }}</td>
             <td>{{ client.name }}</td>
             <td>{{ client.email }}</td>
+            <td>{{ client.segment }}</td>
+            <td>{{ client.region }}</td>
             <td>
               <button (click)="openEditModal(client)" class="btn btn-outline-primary btn-sm me-1">
                 <i class="bi bi-pencil"></i>
@@ -67,6 +69,29 @@
           class="form-control"
           [(ngModel)]="formClient.email"
           placeholder="Email du client"
+        />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Segment</label>
+
+        <select
+          class="form-select"
+          [(ngModel)]="formClient.segment"
+          name="segment"
+          required
+        >
+          <option value="VIP">👑 VIP</option>
+          <option value="STANDARD">Standard</option>
+        </select>
+        </div>
+      <div class="mb-3">
+        <label class="form-label">Region</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="formClient.region"
+          name="region"
+          placeholder="Ex: Africa, Europe, US"
         />
       </div>
 

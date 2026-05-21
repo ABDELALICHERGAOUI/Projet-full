@@ -1,10 +1,9 @@
 package com.example.impactanalyzer.controller;
 
 import com.example.impactanalyzer.dto.DependencyDTO;
-import com.example.impactanalyzer.model.Dependency;
+import com.example.impactanalyzer.entity.Dependency;
 import com.example.impactanalyzer.service.DependencyServiceImpl;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

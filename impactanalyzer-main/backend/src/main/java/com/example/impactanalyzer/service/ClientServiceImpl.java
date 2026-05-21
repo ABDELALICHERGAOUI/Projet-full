@@ -1,6 +1,6 @@
 package com.example.impactanalyzer.service;
 
-import com.example.impactanalyzer.model.Client;
+import com.example.impactanalyzer.entity.Client;
 import com.example.impactanalyzer.repository.ClientRepository;
 import org.springframework.stereotype.Service;
 
@@ -8,6 +8,7 @@ import java.util.List;
 
 @Service
 public class ClientServiceImpl {
+
 
     private final ClientRepository repository;
 
@@ -27,6 +28,9 @@ public class ClientServiceImpl {
     public Client createClient(Client client) {
         if (client.getName() == null || client.getName().trim().isEmpty()) {
             throw new RuntimeException("Le nom du client est obligatoire");
+        }
+        if(repository.existsByEmail(client.getEmail())){
+            throw new RuntimeException("Email already exists");
         }
         return repository.save(client);
     }
