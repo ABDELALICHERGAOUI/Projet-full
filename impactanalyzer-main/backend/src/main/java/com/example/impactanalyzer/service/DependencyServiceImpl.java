@@ -1,8 +1,8 @@
 package com.example.impactanalyzer.service;
 
 import com.example.impactanalyzer.dto.DependencyDTO;
-import com.example.impactanalyzer.model.Dependency;
-import com.example.impactanalyzer.model.ServiceEntity;
+import com.example.impactanalyzer.entity.Dependency;
+import com.example.impactanalyzer.entity.ServiceEntity;
 import com.example.impactanalyzer.repository.DependencyRepository;
 import com.example.impactanalyzer.repository.ServiceRepository;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class DependencyServiceImpl {
         Dependency dependency = new Dependency();
         dependency.setService(service);
         dependency.setDependsOn(dependsOn);
-        dependency.setImpactWeight((int) dto.getImpactWeight());
+        //dependency.setImpactWeight((int) dto.getImpactWeight());
 
         return dependencyRepository.save(dependency);
     }

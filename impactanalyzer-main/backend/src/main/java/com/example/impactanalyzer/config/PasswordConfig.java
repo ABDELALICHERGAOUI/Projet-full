@@ -1,6 +1,6 @@
 package com.example.impactanalyzer.config;
 
-import com.example.impactanalyzer.model.Admin;
+import com.example.impactanalyzer.entity.Admin;
 import com.example.impactanalyzer.repository.AdminRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

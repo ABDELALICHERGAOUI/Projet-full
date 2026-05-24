@@ -21,7 +21,7 @@ import { MessageModule } from 'primeng/message';
     InputTextModule,
     PasswordModule,
     CardModule,
-    MessageModule
+    MessageModule,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',
@@ -32,7 +32,10 @@ export class Login {
   errorMessage = '';
   loading = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
   login(): void {
     if (!this.username || !this.password) {
@@ -50,8 +53,11 @@ export class Login {
       },
       error: () => {
         this.loading = false;
-        this.errorMessage = 'Nom d\'utilisateur ou mot de passe incorrect.';
-      }
+        this.errorMessage = "Nom d'utilisateur ou mot de passe incorrect.";
+      },
     });
   }
 }
+
+
+

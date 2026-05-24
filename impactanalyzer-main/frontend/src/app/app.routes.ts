@@ -8,15 +8,17 @@ import { Impact } from './components/impact/impact';
 import {Dashboard} from './components/dashboard/dashboard';
 import { Login } from './components/login/login';
 import { authGuard } from './guards/auth-guard';
+import {ChangePassword} from "./components/change-password/change-password";
 
 
 export const routes: Routes = [
 
-  // Page login — publique, sans layout
   { path: 'login', component: Login },
   // Dashboard protégé
-  { path: '', component: Dashboard, canActivate: [authGuard] }, // ← ajouté canActivate
-  { path: 'dashboard', component: Dashboard, canActivate: [authGuard] }, // ← ajouté canActivate
+  { path: '', component: Dashboard, canActivate: [authGuard] },
+  { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+  { path: 'change-password', component: ChangePassword, canActivate: [authGuard] },
+
 
   // Pages AVEC navbar  — protégées
   {

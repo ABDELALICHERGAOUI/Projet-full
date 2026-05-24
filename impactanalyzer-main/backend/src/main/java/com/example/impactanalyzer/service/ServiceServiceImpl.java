@@ -1,11 +1,9 @@
 package com.example.impactanalyzer.service;
 
-import com.example.impactanalyzer.model.ServiceEntity;
-import com.example.impactanalyzer.model.ServiceStatus;
+import com.example.impactanalyzer.entity.ServiceEntity;
+import com.example.impactanalyzer.enums.ServiceStatus;
 import com.example.impactanalyzer.repository.ServiceRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package com.example.impactanalyzer.repository;
 
-import com.example.impactanalyzer.model.Dependency;
+import com.example.impactanalyzer.entity.Dependency;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

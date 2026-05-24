@@ -1,4 +1,4 @@
-package com.example.impactanalyzer.model;
+package com.example.impactanalyzer.enums;
 
 public enum ServiceStatus {
     UP,
