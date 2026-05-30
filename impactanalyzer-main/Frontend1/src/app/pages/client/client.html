@@ -79,6 +79,7 @@
                 <th pSortableColumn="region" style="min-width:10rem">
                     Région <p-sortIcon field="region" />
                 </th>
+                <th>Services associés</th>
                 <th style="min-width:12rem">Actions</th>
             </tr>
         </ng-template>
@@ -97,6 +98,18 @@
                         [severity]="client.segment === 'VIP' ? 'warn' : 'info'" />
                 </td>
                 <td>{{ client.region }}</td>
+                <td>
+                    <p-button
+                        icon="pi pi-sitemap"
+                        [label]="(assocCountMap[client.id] || 0) + ' service(s)'"
+                        [badge]="(assocCountMap[client.id] || 0).toString()"
+                        badgeSeverity="info"
+                        severity="secondary"
+                        [outlined]="true"
+                        size="small"
+                        pTooltip="Voir les services associés"
+                        (onClick)="openAssocDialog(client)" />
+                </td>
                 <td>
                     <p-button
                         icon="pi pi-pencil"
@@ -191,5 +204,171 @@
             [label]="isEditMode ? 'Modifier' : 'Ajouter'"
             icon="pi pi-check"
             (onClick)="handleSubmit()" />
+    </ng-template>
+</p-dialog>
+<!-- ═══ Dialog Services Associés ═══ -->
+<p-dialog
+    [(visible)]="assocDialog"
+    [header]="'Services — ' + (currentClient?.name || '')"
+    [modal]="true"
+    [style]="{ width: '700px' }"
+    [draggable]="false"
+    (onHide)="closeAssocDialog()">
+
+    <ng-template #content>
+        <!-- Bouton ajouter -->
+        <div class="flex justify-content-between align-items-center mb-4">
+            <span class="text-color-secondary text-sm">
+                <i class="pi pi-info-circle mr-1"></i>
+                Cliquez sur un service dans le graphe pour le supprimer
+            </span>
+            <p-button label="Ajouter un service"
+                      icon="pi pi-plus" severity="secondary"
+                      (onClick)="openAddAssocDialog()" />
+        </div>
+
+        <!-- Graphe -->
+        <div class="assoc-graph-container" #assocGraph>
+            @if (clientAssociations.length === 0) {
+                <div class="flex flex-col align-items-center
+                            justify-content-center h-full gap-3">
+                    <i class="pi pi-sitemap"
+                       style="font-size:3rem;
+                              color:var(--text-color-secondary)"></i>
+                    <p class="text-color-secondary m-0">
+                        Aucun service associé à ce client
+                    </p>
+                </div>
+            }
+        </div>
+
+        <!-- Légende -->
+        @if (clientAssociations.length > 0) {
+            <div class="assoc-legend mt-3">
+                <span class="font-bold text-sm mr-3">Tier :</span>
+                <span class="legend-item">
+                    <span class="dot" style="background:#ef4444"></span>CRITICAL
+                </span>
+                <span class="legend-item">
+                    <span class="dot" style="background:#f97316"></span>HIGH
+                </span>
+                <span class="legend-item">
+                    <span class="dot" style="background:#6366f1"></span>MEDIUM
+                </span>
+                <span class="legend-item">
+                    <span class="dot" style="background:#10b981"></span>LOW
+                </span>
+            </div>
+
+            <!-- Liste -->
+            <p-divider />
+            <h4 class="mt-0 mb-3">Liste des services associés</h4>
+            <div class="flex flex-col gap-2">
+                @for (cs of clientAssociations; track cs.id) {
+                    <div class="assoc-item">
+                        <div class="flex align-items-center gap-3 flex-1">
+                            <i class="pi pi-cog"
+                               style="color: var(--primary-color)"></i>
+                            <span class="font-semibold">
+                                {{ cs.service?.name }}
+                            </span>
+                            <p-tag [value]="cs.service?.tier || ''"
+                                   [severity]="getTierSeverity(cs.service?.tier)" />
+                            <p-tag [value]="cs.service?.status || ''"
+                                   [severity]="cs.service?.status === 'UP'
+                                               ? 'success' : 'danger'" />
+                        </div>
+                        <p-button icon="pi pi-trash"
+                                  severity="danger"
+                                  [rounded]="true" [outlined]="true"
+                                  [text]="true"
+                                  pTooltip="Supprimer l'association"
+                                  (onClick)="selectedAssocNode = {assocId: cs.id, serviceName: cs.service?.name}; deleteNodeDialog = true" />
+                    </div>
+                }
+            </div>
+        }
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Fermer" icon="pi pi-times"
+                  [text]="true" (onClick)="closeAssocDialog()" />
+    </ng-template>
+</p-dialog>
+
+<!-- ═══ Dialog Confirmer Suppression Nœud ═══ -->
+<p-dialog
+    [(visible)]="deleteNodeDialog"
+    header="Confirmer la suppression"
+    [modal]="true"
+    [style]="{ width: '380px' }"
+    [draggable]="false">
+
+    <ng-template #content>
+        <div class="flex align-items-center gap-3">
+            <i class="pi pi-exclamation-triangle"
+               style="font-size: 2rem; color: #f59e0b"></i>
+            <p class="m-0">
+                Supprimer l'association avec
+                <strong>{{ selectedAssocNode?.serviceName }}</strong> ?
+            </p>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Annuler" icon="pi pi-times" [text]="true"
+                  (onClick)="deleteNodeDialog = false" />
+        <p-button label="Supprimer" icon="pi pi-trash"
+                  severity="danger" (onClick)="confirmDeleteAssoc()" />
+    </ng-template>
+</p-dialog>
+
+<!-- ═══ Dialog Ajouter Association ═══ -->
+<p-dialog
+    [(visible)]="addAssocDialog"
+    header="Associer un service"
+    [modal]="true"
+    [style]="{ width: '420px' }"
+    [draggable]="false">
+
+    <ng-template #content>
+        <div class="flex flex-col gap-4 mt-2">
+
+            <div>
+                <label class="block font-bold mb-2">Client</label>
+                <input pInputText [value]="currentClient?.name"
+                       [disabled]="true" class="w-full" fluid />
+            </div>
+
+            <div>
+                <label class="block font-bold mb-2">Service à associer</label>
+                <p-select
+                    [(ngModel)]="selectedNewServiceId"
+                    [options]="availableServices"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Choisir un service..."
+                    appendTo="body"
+                    class="w-full" fluid />
+                @if (submittedAssoc && !selectedNewServiceId) {
+                    <small class="text-red-500">
+                        Champ obligatoire.
+                    </small>
+                }
+                @if (availableServices.length === 0) {
+                    <small class="text-orange-500">
+                        Tous les services sont déjà associés.
+                    </small>
+                }
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Annuler" icon="pi pi-times"
+                  [text]="true" (onClick)="addAssocDialog = false" />
+        <p-button label="Associer" icon="pi pi-check"
+                  [disabled]="availableServices.length === 0"
+                  (onClick)="handleAddAssoc()" />
     </ng-template>
 </p-dialog>

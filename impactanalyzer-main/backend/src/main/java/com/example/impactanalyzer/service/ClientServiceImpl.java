@@ -43,6 +43,12 @@ public class ClientServiceImpl {
         if (clientDetails.getEmail() != null) {
             client.setEmail(clientDetails.getEmail());
         }
+        if(clientDetails.getSegment() != null) {
+            client.setSegment(clientDetails.getSegment());
+        }
+        if(clientDetails.getRegion() != null) {
+            client.setRegion(clientDetails.getRegion());
+        }
         return repository.save(client);
     }
 

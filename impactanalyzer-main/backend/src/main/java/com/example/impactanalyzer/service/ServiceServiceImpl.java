@@ -40,6 +40,18 @@ public class ServiceServiceImpl {
         if (serviceDetails.getDescription() != null) {
             service.setDescription(serviceDetails.getDescription());
         }
+        if (serviceDetails.getOwnerTeam() != null) {
+            service.setOwnerTeam(serviceDetails.getOwnerTeam());
+        }
+        if(serviceDetails.getTier() != null) {
+            service.setTier(serviceDetails.getTier());
+        }
+        if(serviceDetails.getSla() != null) {
+            service.setSla(serviceDetails.getSla());
+        }
+        if (serviceDetails.getStatus() != null) {
+            service.setStatus(serviceDetails.getStatus());
+        }
         return repository.save(service);
     }
 

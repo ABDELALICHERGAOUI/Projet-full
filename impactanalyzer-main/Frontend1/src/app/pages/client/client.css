@@ -1,0 +1,52 @@
+/* Graphe associations */
+.assoc-graph-container {
+    width: 100%;
+    height: 280px;
+    background: var(--surface-ground);
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+/* Légende */
+.assoc-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--surface-ground);
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Items liste associations */
+.assoc-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-ground);
+    transition: background 0.2s;
+}
+
+.assoc-item:hover {
+    background: var(--surface-hover);
+}
