@@ -6,6 +6,8 @@ import com.example.impactanalyzer.entity.ServiceEntity;
 import com.example.impactanalyzer.repository.DependencyRepository;
 import com.example.impactanalyzer.repository.ServiceRepository;
 import org.springframework.stereotype.Service;
+import com.example.impactanalyzer.enums.DependencyCriticality;
+import com.example.impactanalyzer.enums.DependencyType;
 
 import java.util.List;
 
@@ -44,8 +46,12 @@ public class DependencyServiceImpl {
         Dependency dependency = new Dependency();
         dependency.setService(service);
         dependency.setDependsOn(dependsOn);
-        //dependency.setImpactWeight((int) dto.getImpactWeight());
-
+        dependency.setCriticality(
+                DependencyCriticality.valueOf(dto.getCriticality())
+        );
+        dependency.setDependencyType(
+                DependencyType.valueOf(dto.getDependencyType())
+        );
         return dependencyRepository.save(dependency);
     }
 

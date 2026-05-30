@@ -1,0 +1,188 @@
+<p-toast />
+
+<!-- Header de la page -->
+<div class="card mb-4">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-3">
+            <div class="impact-header-icon">
+                <i class="pi pi-bolt" style="font-size: 1.8rem; color: white"></i>
+            </div>
+            <div>
+                <h2 class="m-0 text-2xl font-bold">Simulateur d'Impact</h2>
+                <p class="m-0 text-color-secondary mt-1">
+                    Analysez la propagation des pannes en temps réel
+                </p>
+            </div>
+        </div>
+
+        <!-- Sélection + bouton -->
+        <div class="flex gap-3 align-items-center flex-wrap">
+            <p-select
+                [(ngModel)]="selectedServiceId"
+                [options]="serviceOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Sélectionner un service..."
+                style="min-width: 280px" />
+            <p-button
+                label="Lancer la simulation"
+                icon="pi pi-bolt"
+                [loading]="loading"
+                [disabled]="!selectedServiceId"
+                (onClick)="simulate()" />
+        </div>
+    </div>
+
+    @if (error) {
+        <p-message severity="error" styleClass="w-full mt-4">
+            {{ error }}
+        </p-message>
+    }
+</div>
+
+<!-- Résultats -->
+@if (impactResult) {
+
+    <!-- KPI Cards -->
+    <div class="results-grid mb-4">
+
+        <!-- Service en panne -->
+        <div class="card kpi-card kpi-danger">
+            <div class="kpi-icon-wrap danger">
+                <i class="pi pi-times-circle"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-label">Service en panne</div>
+                <div class="kpi-value">{{ impactResult.failedServiceName }}</div>
+            </div>
+        </div>
+
+        <!-- Services impactés — CLIQUABLE -->
+        <div class="card kpi-card kpi-warning clickable"
+             (click)="openServicesDialog()"
+             [class.disabled]="impactResult.totalServicesImpacted === 0"
+             pRipple>
+            <div class="kpi-icon-wrap warning">
+                <i class="pi pi-sitemap"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-label">Services impactés</div>
+                <div class="kpi-value">{{ impactResult.totalServicesImpacted }}</div>
+            </div>
+            @if (impactResult.totalServicesImpacted > 0) {
+                <div class="kpi-hint">
+                    <i class="pi pi-eye mr-1"></i> Voir la liste
+                </div>
+            }
+        </div>
+
+        <!-- Clients impactés — CLIQUABLE -->
+        <div class="card kpi-card kpi-purple clickable"
+             (click)="openClientsDialog()"
+             [class.disabled]="impactResult.totalClientsImpacted === 0"
+             pRipple>
+            <div class="kpi-icon-wrap purple">
+                <i class="pi pi-users"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-label">Clients affectés</div>
+                <div class="kpi-value">{{ impactResult.totalClientsImpacted }}</div>
+            </div>
+            @if (impactResult.totalClientsImpacted > 0) {
+                <div class="kpi-hint">
+                    <i class="pi pi-eye mr-1"></i> Voir la liste
+                </div>
+            }
+        </div>
+
+        <!-- Blast Radius -->
+        <div class="card kpi-card kpi-score">
+            <div class="kpi-icon-wrap success">
+                <i class="pi pi-chart-pie"></i>
+            </div>
+            <div class="kpi-content w-full">
+                <div class="flex justify-between align-items-center mb-2">
+                    <div class="kpi-label">Blast Radius</div>
+                    <p-tag [value]="impactResult.severity"
+                           [severity]="getSeverity()" />
+                </div>
+                <div class="kpi-value mb-3">
+                    {{ impactResult.impactScore | number:'1.0-1' }}%
+                </div>
+                <p-progressbar
+                    [value]="impactResult.impactScore"
+                    [style]="{ height: '8px' }"
+                    [showValue]="false" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphe -->
+    <div class="card">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="m-0">
+                <i class="pi pi-share-alt mr-2" style="color: var(--primary-color)"></i>
+                Graphe de propagation
+            </h3>
+            <div class="graph-legend">
+                <span class="legend-item">
+                    <span class="dot dot-red"></span> Service en panne
+                </span>
+                <span class="legend-item">
+                    <span class="dot dot-orange"></span> Service impacté
+                </span>
+            </div>
+        </div>
+        <div #graphContainer class="graph-container"></div>
+    </div>
+}
+
+<!-- Dialog Services impactés -->
+<p-dialog
+    [(visible)]="showServicesDialog"
+    header="Services impactés"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [draggable]="false">
+    <ng-template #content>
+        <div class="flex flex-col gap-2">
+            @for (s of impactResult?.impactedServices; track s) {
+                <div class="dialog-list-item service-item">
+                    <i class="pi pi-cog mr-3" style="color: #f59e0b"></i>
+                    <span>{{ s }}</span>
+                    <p-tag value="Impacté" severity="warn"
+                           styleClass="ml-auto" />
+                </div>
+            }
+        </div>
+    </ng-template>
+    <ng-template #footer>
+        <p-button label="Fermer" icon="pi pi-times"
+                  [text]="true" (onClick)="showServicesDialog = false" />
+    </ng-template>
+</p-dialog>
+
+<!-- Dialog Clients impactés -->
+<p-dialog
+    [(visible)]="showClientsDialog"
+    header="Clients affectés"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [draggable]="false">
+    <ng-template #content>
+        <div class="flex flex-col gap-2">
+            @for (c of impactResult?.impactedClients; track c) {
+                <div class="dialog-list-item client-item">
+                    <i class="pi pi-user mr-3" style="color: #6366f1"></i>
+                    <span>{{ c }}</span>
+                    <p-tag value="Affecté" severity="danger"
+                           styleClass="ml-auto" />
+                </div>
+            }
+        </div>
+    </ng-template>
+    <ng-template #footer>
+        <p-button label="Fermer" icon="pi pi-times"
+                  [text]="true" (onClick)="showClientsDialog = false" />
+    </ng-template>
+</p-dialog>

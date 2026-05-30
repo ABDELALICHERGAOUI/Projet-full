@@ -3,6 +3,7 @@ package com.example.impactanalyzer.controller;
 import com.example.impactanalyzer.entity.Client;
 import com.example.impactanalyzer.service.ClientServiceImpl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,5 +43,11 @@ public class ClientController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteClient(@PathVariable Long id) {
         clientService.deleteClient(id);
+    }
+
+    @DeleteMapping("/batch")
+    public ResponseEntity<?> deleteMultiple(@RequestBody List<Long> ids) {
+        clientService.deleteAllById(ids);
+        return ResponseEntity.ok().build();
     }
 }

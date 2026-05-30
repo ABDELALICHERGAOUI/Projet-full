@@ -1,0 +1,99 @@
+<div class="bg-surface-50 dark:bg-surface-950 flex items-center
+            justify-center min-h-screen min-w-[100vw] overflow-hidden">
+    <div class="flex flex-col items-center justify-center">
+
+        <!-- Logo SDIA -->
+        <div style="border-radius: 56px; padding: 0.3rem;
+                    background: linear-gradient(180deg, var(--primary-color) 10%,
+                    rgba(33, 150, 243, 0) 30%)">
+            <div class="w-full surface-card py-8 px-8 sm:px-8"
+                 style="border-radius: 53px">
+
+                <!-- Titre -->
+                <div class="text-center mb-8">
+                    <div class="flex justify-center mb-4">
+                        <i class="pi pi-chart-network"
+                           style="font-size: 3rem; color: var(--primary-color)"></i>
+                    </div>
+                    <div class="text-surface-900 dark:text-surface-0
+                                text-3xl font-medium mb-3">
+                        Bienvenue sur SDIA !
+                    </div>
+                    <span class="text-muted-color font-medium">
+                        Smart Dependency Impact Analyzer
+                    </span>
+                </div>
+
+                <!-- Message erreur -->
+                @if (errorMessage) {
+                    <p-message
+                        severity="error"
+                        [text]="errorMessage"
+                        styleClass="w-full mb-4" />
+                }
+
+                <!-- Formulaire -->
+                <div>
+                    <!-- Nom d'utilisateur -->
+                    <label class="block text-surface-900 dark:text-surface-0
+                                  text-xl font-medium mb-2">
+                        Nom d'utilisateur
+                    </label>
+                    <input
+                        pInputText
+                        id="username"
+                        type="text"
+                        placeholder="Entrez votre nom d'utilisateur"
+                        class="w-full md:w-[30rem] mb-8"
+                        [(ngModel)]="username"
+                        (keyup.enter)="login()" />
+
+                    <!-- Mot de passe -->
+                    <label class="block text-surface-900 dark:text-surface-0
+                                  font-medium text-xl mb-2">
+                        Mot de passe
+                    </label>
+                    <p-password
+                        id="password"
+                        [(ngModel)]="password"
+                        placeholder="Entrez votre mot de passe"
+                        [toggleMask]="true"
+                        styleClass="mb-4"
+                        [fluid]="true"
+                        [feedback]="false"
+                        (keyup.enter)="login()">
+                    </p-password>
+
+                    <!-- Remember me -->
+                    <div class="flex items-center justify-between mb-8 gap-8">
+                        <div class="flex items-center">
+                            <p-checkbox
+                                [(ngModel)]="rememberMe"
+                                id="rememberme"
+                                binary
+                                class="mr-2">
+                            </p-checkbox>
+                            <label for="rememberme">Se souvenir de moi</label>
+                        </div>
+                    </div>
+
+                    <!-- Bouton connexion -->
+                    <p-button
+                        label="Se connecter"
+                        icon="pi pi-sign-in"
+                        styleClass="w-full"
+                        [loading]="loading"
+                        (onClick)="login()">
+                    </p-button>
+
+                </div>
+
+                <!-- Footer -->
+                <p class="text-center text-muted-color text-sm mt-6 mb-0">
+                    NTT Data © 2025 — Administration
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -50,4 +50,7 @@ public class ClientServiceImpl {
         Client client = getClientById(id);
         repository.delete(client);
     }
+    public void deleteAllById(List<Long> ids) {
+        repository.deleteAllById(ids);
+    }
 }

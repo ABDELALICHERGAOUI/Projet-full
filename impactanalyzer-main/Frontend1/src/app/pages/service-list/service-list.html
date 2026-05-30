@@ -1,0 +1,339 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="card">
+    <!-- Toolbar -->
+    <p-toolbar styleClass="mb-6">
+        <ng-template #start>
+            <p-button label="Nouveau Service" icon="pi pi-plus"
+                      severity="secondary" class="mr-2"
+                      (onClick)="openAddModal()" />
+            <p-button label="Supprimer" icon="pi pi-trash"
+                      severity="danger" outlined
+                      [disabled]="!selectedServices || !selectedServices.length"
+                      (onClick)="deleteSelectedServices()" />
+        </ng-template>
+        <ng-template #end>
+            <p-button label="Exporter" icon="pi pi-upload"
+                      severity="secondary" (onClick)="exportCSV()" />
+        </ng-template>
+    </p-toolbar>
+
+    <!-- Table -->
+    <p-table #dt
+             [value]="services"
+             [columns]="cols"
+             [(selection)]="selectedServices"
+             [paginator]="true"
+             [rows]="10"
+             [rowsPerPageOptions]="[10, 25, 50]"
+             [globalFilterFields]="['name','description','tier','ownerTeam','status']"
+             [tableStyle]="{ 'min-width': '75rem' }"
+             currentPageReportTemplate="Affichage {first} à {last} sur {totalRecords} services"
+             [showCurrentPageReport]="true"
+             dataKey="id">
+
+        <ng-template #caption>
+            <div class="flex items-center justify-between">
+                <h5 class="m-0">Gestion des Services</h5>
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text"
+                           [(ngModel)]="searchValue"
+                           (input)="dt.filterGlobal(searchValue, 'contains')"
+                           placeholder="Rechercher..." />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template #header>
+            <tr>
+                <th style="width: 3rem"><p-tableHeaderCheckbox /></th>
+                <th pSortableColumn="name">Nom <p-sortIcon field="name"/></th>
+                <th pSortableColumn="description">Description <p-sortIcon field="description"/></th>
+                <th pSortableColumn="tier">Tier <p-sortIcon field="tier"/></th>
+                <th pSortableColumn="ownerTeam">Équipe <p-sortIcon field="ownerTeam"/></th>
+                <th pSortableColumn="sla">SLA (%) <p-sortIcon field="sla"/></th>
+                <th pSortableColumn="status">Status <p-sortIcon field="status"/></th>
+                <th pSortableColumn="dependency">Dépendances  <p-sortIcon field="dependency"/></th>
+                <th>Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-service>
+            <tr>
+                <td><p-tableCheckbox [value]="service" /></td>
+                <td>{{ service.name }}</td>
+                <td>{{ service.description }}</td>
+                <td>
+                    <p-tag [value]="service.tier"
+                           [severity]="getTierSeverity(service.tier)" />
+                </td>
+                <td>{{ service.ownerTeam }}</td>
+                <td>{{ service.sla }}%</td>
+                <td>
+                    <p-tag [value]="service.status"
+                           [severity]="getStatusSeverity(service.status)" />
+                </td>
+                <td>
+                    <p-button
+                        [label]="(depCountMap[service.id] || 0) + ' dépendance(s)'"
+                        icon="pi pi-share-alt"
+                        [badge]="(depCountMap[service.id] || 0).toString()"
+                        badgeSeverity="info"
+                        severity="secondary"
+                        [outlined]="true"
+                        size="small"
+                        pTooltip="Voir les dépendances"
+                        (onClick)="openDepDialog(service)" />
+                </td>
+                <td>
+                    <p-button icon="pi pi-pencil" [rounded]="true"
+                              [outlined]="true" class="mr-2"
+                              (onClick)="openEdit(service)" />
+                    <p-button icon="pi pi-trash" severity="danger"
+                              [rounded]="true" [outlined]="true"
+                              (onClick)="deleteService(service)" />
+                </td>
+
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Dialog -->
+<p-dialog [(visible)]="serviceDialog"
+          [header]="isEditMode ? 'Modifier Service' : 'Nouveau Service'"
+          [style]="{ width: '500px' }" [modal]="true">
+
+    <ng-template #content>
+        <div class="flex flex-col gap-4">
+
+            <div>
+                <label class="block font-bold mb-2">Nom</label>
+                <input pInputText [(ngModel)]="formService.name"
+                       placeholder="Nom du service" class="w-full" fluid />
+                @if (submitted && !formService.name) {
+                    <small class="text-red-500">Nom obligatoire.</small>
+                }
+            </div>
+
+            <div>
+                <label class="block font-bold mb-2">Description</label>
+                <input pInputText [(ngModel)]="formService.description"
+                       placeholder="Description" class="w-full" fluid />
+                @if (submitted && !formService.description) {
+                    <small class="text-red-500">Description obligatoire.</small>
+                }
+            </div>
+
+            <div>
+                <label class="block font-bold mb-2">Tier</label>
+                <p-select [(ngModel)]="formService.tier"
+                          [options]="tierOptions"
+                          optionLabel="label" optionValue="value"
+                          placeholder="Choisir un tier"
+                          class="w-full" fluid />
+            </div>
+
+            <div>
+                <label class="block font-bold mb-2">Équipe propriétaire</label>
+                <input pInputText [(ngModel)]="formService.ownerTeam"
+                       placeholder="Ex: Team Backend" class="w-full" fluid />
+            </div>
+
+            <div>
+                <label class="block font-bold mb-2">SLA (%)</label>
+                <p-inputnumber [(ngModel)]="formService.sla"
+                               placeholder="Ex: 99.9"
+                               [minFractionDigits]="1"
+                               [maxFractionDigits]="2"
+                               class="w-full" fluid />
+            </div>
+
+            <div>
+                <label class="block font-bold mb-2">Status</label>
+                <p-select [(ngModel)]="formService.status"
+                          [options]="statusOptions"
+                          optionLabel="label" optionValue="value"
+                          class="w-full" fluid />
+            </div>
+
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Annuler" icon="pi pi-times"
+                  [text]="true" (onClick)="closeModal()" />
+        <p-button [label]="isEditMode ? 'Modifier' : 'Ajouter'"
+                  icon="pi pi-check" (onClick)="handleSubmit()" />
+    </ng-template>
+</p-dialog>
+<!-- ═══ Dialog Dépendances ═══ -->
+<p-dialog
+    [(visible)]="depDialog"
+    [header]="'Dépendances — ' + (currentService?.name || '')"
+    [modal]="true"
+    [style]="{ width: '750px' }"
+    [draggable]="false"
+    (onHide)="closeDepDialog()">
+
+    <ng-template #content>
+        <!-- Bouton Ajouter -->
+        <div class="flex justify-content-end mb-4">
+            <p-button label="Ajouter une dépendance"
+                      icon="pi pi-plus" severity="secondary"
+                      (onClick)="openAddDepDialog()" />
+        </div>
+
+        <!-- Graphe -->
+        <div class="dep-graph-container" #depGraph>
+            @if (dependencies.length === 0) {
+                <div class="flex flex-col align-items-center
+                            justify-content-center h-full gap-3">
+                    <i class="pi pi-share-alt"
+                       style="font-size: 3rem; color: var(--text-color-secondary)"></i>
+                    <p class="text-color-secondary m-0">
+                        Aucune dépendance pour ce service
+                    </p>
+                </div>
+            }
+        </div>
+        <!--  Légende du graphe -->
+        @if (dependencies.length > 0) {
+            <div class="graph-legend mt-3">
+                <span class="legend-title">Légende :</span>
+
+                <div class="legend-items">
+                    <!-- Criticité -->
+                    <span class="legend-section">Criticité :</span>
+                    <span class="legend-item">
+                <span class="legend-line" style="background:#ef4444"></span>
+                HIGH
+            </span>
+                    <span class="legend-item">
+                <span class="legend-line" style="background:#f59e0b"></span>
+                MEDIUM
+            </span>
+                    <span class="legend-item">
+                <span class="legend-line" style="background:#10b981"></span>
+                LOW
+            </span>
+
+                    <!-- Séparateur -->
+                    <span class="legend-sep">|</span>
+
+                    <!-- Type -->
+                    <span class="legend-section">Type :</span>
+                    <span class="legend-item">
+                <span class="legend-line solid" style="background:#64748b"></span>
+                SYNC_API
+            </span>
+                    <span class="legend-item">
+                <span class="legend-line dashed" style="background:#64748b"></span>
+                ASYNC_EVENT
+            </span>
+                </div>
+            </div>
+        }
+
+        <!-- Liste des dépendances -->
+        @if (dependencies.length > 0) {
+            <p-divider />
+            <h4 class="mt-0 mb-3">Liste des dépendances</h4>
+            <div class="flex flex-col gap-2">
+                @for (dep of dependencies; track dep.id) {
+                    <div class="dep-item">
+                        <div class="flex align-items-center gap-3 flex-1">
+                            <i class="pi pi-arrow-right"
+                               style="color: var(--primary-color)"></i>
+                            <span class="font-semibold">
+                                {{ dep.dependsOn?.name }}
+                            </span>
+                            <p-tag [value]="dep.criticality"
+                                   [severity]="getTierSeverity(dep.criticality)" />
+                            <p-tag [value]="dep.dependencyType"
+                                   severity="secondary" />
+                        </div>
+                        <p-button icon="pi pi-trash" severity="danger"
+                                  [rounded]="true" [outlined]="true"
+                                  [text]="true"
+                                  (onClick)="deleteDependency(dep)" />
+                    </div>
+                }
+            </div>
+        }
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Fermer" icon="pi pi-times"
+                  [text]="true" (onClick)="closeDepDialog()" />
+    </ng-template>
+</p-dialog>
+
+<!-- ═══ Dialog Ajouter Dépendance ═══ -->
+<p-dialog
+    [(visible)]="addDepDialog"
+    header="Ajouter une dépendance"
+    [modal]="true"
+    [style]="{ width: '450px',minHeight: '400px' }"
+    [draggable]="false">
+
+    <ng-template #content>
+        <div class="flex flex-col gap-4 mt-2">
+
+            <div>
+                <label class="block font-bold mb-2">
+                    Service source
+                </label>
+                <input pInputText
+                       [value]="currentService?.name"
+                       [disabled]="true" class="w-full" fluid />
+            </div>
+
+            <div>
+                <label class="block font-bold mb-2">
+                    Dépend de
+                </label>
+                <p-select [(ngModel)]="formDep.dependsOnId"
+                          [options]="availableServices"
+                          optionLabel="label" optionValue="value"
+                          placeholder="Choisir un service..."
+                          appendTo="body"
+                          class="w-full" fluid />
+                @if (submittedDep && !formDep.dependsOnId) {
+                    <small class="text-red-500">
+                        Champ obligatoire.
+                    </small>
+                }
+            </div>
+
+            <div>
+                <label class="block font-bold mb-2">Criticité</label>
+                <p-select [(ngModel)]="formDep.criticality"
+                          [options]="criticalityOptions"
+                          optionLabel="label" optionValue="value"
+                          appendTo="body"
+                          class="w-full" fluid />
+            </div>
+
+            <div>
+                <label class="block font-bold mb-2">
+                    Type de dépendance
+                </label>
+                <p-select [(ngModel)]="formDep.dependencyType"
+                          [options]="depTypeOptions"
+                          optionLabel="label" optionValue="value"
+                          appendTo="body"
+                          class="w-full" fluid />
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Annuler" icon="pi pi-times"
+                  [text]="true" (onClick)="addDepDialog = false" />
+        <p-button label="Ajouter" icon="pi pi-check"
+                  (onClick)="handleAddDep()" />
+    </ng-template>
+</p-dialog>

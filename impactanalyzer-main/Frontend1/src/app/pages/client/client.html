@@ -1,0 +1,195 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="card">
+
+    <!-- Toolbar -->
+    <p-toolbar styleClass="mb-6">
+        <ng-template #start>
+            <p-button
+                label="Nouveau Client"
+                icon="pi pi-plus"
+                severity="secondary"
+                class="mr-2"
+                (onClick)="openAddModal()" />
+            <p-button
+                label="Supprimer"
+                icon="pi pi-trash"
+                severity="danger" outlined
+                [disabled]="!selectedClients || selectedClients.length === 0"
+                (onClick)="deleteSelectedClients()" />
+        </ng-template>
+
+        <ng-template #end>
+            <p-button
+                label="Export"
+                icon="pi pi-upload"
+                severity="secondary"
+                (onClick)="exportCSV()" />
+        </ng-template>
+    </p-toolbar>
+
+    <!-- Table -->
+    <p-table
+        #dt
+        [value]="clients"
+        [columns]="cols"
+        [(selection)]="selectedClients"
+        [loading]="isLoading"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [globalFilterFields]="['name','email','segment','region']"
+        [tableStyle]="{ 'min-width': '75rem' }"
+        currentPageReportTemplate="Affichage {first} à {last} sur {totalRecords} clients"
+        [showCurrentPageReport]="true"
+        dataKey="id">
+
+        <!-- Barre de recherche -->
+        <ng-template #caption>
+            <div class="flex items-center justify-between">
+                <h5 class="m-0">Gestion des Clients</h5>
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input
+                        pInputText
+                        type="text"
+                        [(ngModel)]="searchValue"
+                        (input)="dt.filterGlobal(searchValue, 'contains')"
+                        placeholder="Rechercher..." />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <!-- Entêtes -->
+        <ng-template #header>
+            <tr>
+                <th style="width: 3rem">
+                    <p-tableHeaderCheckbox />
+                </th>
+                <th pSortableColumn="name" style="min-width:16rem">
+                    Nom <p-sortIcon field="name" />
+                </th>
+                <th pSortableColumn="email" style="min-width:16rem">
+                    Email <p-sortIcon field="email" />
+                </th>
+                <th pSortableColumn="segment" style="min-width:10rem">
+                    Segment <p-sortIcon field="segment" />
+                </th>
+                <th pSortableColumn="region" style="min-width:10rem">
+                    Région <p-sortIcon field="region" />
+                </th>
+                <th style="min-width:12rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <!-- Données -->
+        <ng-template #body let-client>
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="client" />
+                </td>
+                <td>{{ client.name }}</td>
+                <td>{{ client.email }}</td>
+                <td>
+                    <p-tag
+                        [value]="client.segment"
+                        [severity]="client.segment === 'VIP' ? 'warn' : 'info'" />
+                </td>
+                <td>{{ client.region }}</td>
+                <td>
+                    <p-button
+                        icon="pi pi-pencil"
+                        [rounded]="true"
+                        [outlined]="true"
+                        class="mr-2"
+                        (onClick)="openEditModal(client)" />
+                    <p-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [rounded]="true"
+                        [outlined]="true"
+                        (onClick)="handleDelete(client)" />
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Dialog Ajouter / Modifier -->
+<p-dialog
+    [(visible)]="clientDialog"
+    [style]="{ width: '450px' }"
+    [header]="isEditMode ? 'Modifier Client' : 'Nouveau Client'"
+    [modal]="true">
+
+    <ng-template #content>
+        <div class="flex flex-col gap-6">
+
+            <!-- Nom -->
+            <div>
+                <label class="block font-bold mb-3">Nom</label>
+                <input
+                    pInputText
+                    id="name"
+                    [(ngModel)]="formClient.name"
+                    placeholder="Nom du client"
+                    class="w-full"
+                    fluid />
+                @if (submitted && !formClient.name) {
+                    <small class="text-red-500">Le nom est obligatoire.</small>
+                }
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="block font-bold mb-3">Email</label>
+                <input
+                    pInputText
+                    id="email"
+                    [(ngModel)]="formClient.email"
+                    placeholder="Email du client"
+                    class="w-full"
+                    fluid />
+                @if (submitted && !formClient.email) {
+                    <small class="text-red-500">L'email est obligatoire.</small>
+                }
+            </div>
+
+            <!-- Segment -->
+            <div>
+                <label class="block font-bold mb-3">Segment</label>
+                <p-select
+                    [(ngModel)]="formClient.segment"
+                    [options]="segmentOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Choisir un segment"
+                    class="w-full"
+                    fluid />
+            </div>
+
+            <!-- Région -->
+            <div>
+                <label class="block font-bold mb-3">Région</label>
+                <input
+                    pInputText
+                    id="region"
+                    [(ngModel)]="formClient.region"
+                    placeholder="Ex: Africa, Europe, US"
+                    class="w-full"
+                    fluid />
+            </div>
+
+        </div>
+    </ng-template>
+
+    <!-- Footer Dialog -->
+    <ng-template #footer>
+        <p-button label="Annuler" icon="pi pi-times" [text]="true" (onClick)="closeModal()" />
+        <p-button
+            [label]="isEditMode ? 'Modifier' : 'Ajouter'"
+            icon="pi pi-check"
+            (onClick)="handleSubmit()" />
+    </ng-template>
+</p-dialog>
