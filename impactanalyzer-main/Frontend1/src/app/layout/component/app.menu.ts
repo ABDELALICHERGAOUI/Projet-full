@@ -32,8 +32,9 @@ export class AppMenu {
                 items: [
                     { label: 'Clients',      icon: 'pi pi-fw pi-users',    routerLink: ['/pages/client'] },
                     { label: 'Services',     icon: 'pi pi-fw pi-cog',      routerLink: ['/pages/service'] },
-                    //{ label: 'Dépendances',  icon: 'pi pi-fw pi-sitemap',  routerLink: ['/pages/dependency-list'] },
                     { label: 'Impact',       icon: 'pi pi-fw pi-chart-bar',routerLink: ['/pages/impact'] },
+                    { label: 'Topologie', icon: 'pi pi-fw pi-share-alt',routerLink: ['/pages/topology'] },
+
                 ]
             },
             {
@@ -63,11 +64,6 @@ export class AppMenu {
                                 routerLink: ['/auth/access']
                             }
                         ]
-                    },
-                    {
-                        label: 'Crud',
-                        icon: 'pi pi-fw pi-pencil',
-                        routerLink: ['/pages/crud']
                     },
                     {
                         label: 'Not Found',

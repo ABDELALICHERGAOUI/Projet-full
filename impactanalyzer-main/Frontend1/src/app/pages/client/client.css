@@ -1,8 +1,8 @@
 /* Graphe associations */
 .assoc-graph-container {
     width: 100%;
-    height: 280px;
-    background: var(--surface-ground);
+    height: 380px;
+    background:#f8fafc; /* var(--surface-ground); */
     border: 1px solid var(--surface-border);
     border-radius: 10px;
     overflow: hidden;

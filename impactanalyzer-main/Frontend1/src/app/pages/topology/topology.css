@@ -1,0 +1,149 @@
+/* Header icon */
+.topo-header-icon {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    flex-shrink: 0;
+}
+
+/* Stats */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-icon-wrap {
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-color);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-color-secondary);
+    margin-top: 4px;
+}
+
+/* Layout principal */
+.topo-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Sidebar */
+.topo-sidebar {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Graphe */
+.topo-graph-card {
+    height: 650px;
+    padding: 0 !important;
+    overflow: hidden;
+    position: relative;
+}
+
+.topo-graph-container {
+    width: 100%;
+    height: 100%;
+    background: var(--surface-ground);
+}
+
+.topo-graph-container.hidden {
+    display: none;
+}
+
+/* Info nœud */
+.node-info-card {
+    border-left: 4px solid var(--primary-color);
+}
+
+.info-label {
+    font-size: 0.78rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.info-value {
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+/* Légende */
+.legend-section { margin-bottom: 8px; }
+
+.legend-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-color-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    margin-bottom: 4px;
+    color: var(--text-color);
+}
+
+.legend-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.legend-line {
+    display: inline-block;
+    width: 24px; height: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.legend-line.dashed {
+    background: transparent !important;
+    border-top: 3px dashed #6b7280;
+    height: 0;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 900px) {
+    .topo-layout { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .topo-graph-card { height: 450px; }
+}

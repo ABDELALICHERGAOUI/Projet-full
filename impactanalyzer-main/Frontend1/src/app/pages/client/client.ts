@@ -212,7 +212,7 @@ export class ClientComponent implements OnInit {
             next: (data: any[]) => {
                 this.assocCountMap = {};
                 data.forEach(cs => {
-                    const id = cs.client?.id;
+                    const id = Number(cs.clientId);
                     if (id) {
                         this.assocCountMap[id] =
                             (this.assocCountMap[id] || 0) + 1;
@@ -241,21 +241,23 @@ export class ClientComponent implements OnInit {
     loadAssociations(clientId: number) {
         this.apiService.getAllClientServices().subscribe({
             next: (data: any[]) => {
+                // ✅ Force la comparaison en number
                 this.clientAssociations = data.filter(
-                    cs => cs.client?.id === clientId
+                    cs => Number(cs.clientId) === Number(clientId)
                 );
+
                 // Services déjà associés
                 const associatedIds = this.clientAssociations
-                    .map(cs => cs.service?.id);
-                // Services disponibles = pas encore associés
+                    .map(cs => Number(cs.serviceId));
+
+                // Services disponibles
                 this.availableServices = this.allServices
-                    .filter(s => !associatedIds.includes(s.id))
+                    .filter(s => !associatedIds.includes(Number(s.id)))
                     .map(s => ({ label: s.name, value: s.id }));
 
-                this.assocCountMap[clientId] =
-                    this.clientAssociations.length;
+                this.assocCountMap[clientId] = this.clientAssociations.length;
                 this.cdr.detectChanges();
-                setTimeout(() => this.buildAssocGraph(), 100);
+                setTimeout(() => this.buildAssocGraph(), 150); // ✅ augmente timeout
             }
         });
     }
@@ -267,50 +269,56 @@ export class ClientComponent implements OnInit {
         const nodes: any[] = [];
         const edges: any[] = [];
 
-        // Nœud client central
+        // Nœud client
         nodes.push({
             id: 'client_' + this.currentClient.id,
             label: this.currentClient.name,
-            color: { background: '#6366f1', border: '#4338ca' },
-            font: { color: '#fff', bold: true, size: 14 },
+            color: {
+                background: '#1e293b',
+                border: '#6366f1',
+                highlight: { background: '#1e293b', border: '#818cf8' }
+            },
+            font: { color: '#ffffff', bold: true, size: 16 },
             shape: 'box',
-            size: 30
+            borderWidth: 3,
+            size: 35
         });
 
-        // Nœuds services associés
         this.clientAssociations.forEach(cs => {
-            const service = cs.service;
-            if (!service) return;
+
+            // ✅ Label par défaut si serviceName est null
+            const label = cs.serviceName || `Service #${cs.serviceId}`;
 
             const tierColors: any = {
-                'CRITICAL': '#ef4444',
-                'HIGH':     '#f97316',
-                'MEDIUM':   '#6366f1',
-                'LOW':      '#10b981'
+                'CRITICAL': { bg: '#fef2f2', border: '#ef4444', font: '#991b1b' },
+                'HIGH':     { bg: '#fff7ed', border: '#f97316', font: '#9a3412' },
+                'MEDIUM':   { bg: '#eff6ff', border: '#3b82f6', font: '#1e40af' },
+                'LOW':      { bg: '#f0fdf4', border: '#22c55e', font: '#166634' }
             };
-            const bg = tierColors[service.tier] || '#64748b';
+            const colors = tierColors[cs.serviceTier] || tierColors['MEDIUM'];
 
             nodes.push({
-                id: 'svc_' + cs.id,  // utilise l'ID de l'association
-                label: service.name,
-                title: `Tier: ${service.tier}\nStatus: ${service.status}`,
+                id: 'svc_' + cs.id,
+                label: label,                           // ✅ label sécurisé
+                title: `🔧 Tier: ${cs.serviceTier || '?'}\n📡 Status: ${cs.serviceStatus || '?'}`,
                 color: {
-                    background: bg,
-                    border: bg,
-                    hover: { background: '#ef4444', border: '#b91c1c' }
+                    background: colors.bg,
+                    border: colors.border,
+                    hover: { background: '#fee2e2', border: '#ef4444' }
                 },
-                font: { color: '#fff', size: 12 },
+                font: { color: colors.font, size: 14 },
                 shape: 'ellipse',
-                // Stocker l'ID de l'association pour la suppression
+                borderWidth: 2,
                 assocId: cs.id,
-                serviceName: service.name
+                serviceName: label                      // ✅ aussi sécurisé
             });
 
             edges.push({
                 from: 'client_' + this.currentClient.id,
                 to: 'svc_' + cs.id,
                 arrows: 'to',
-                color: { color: '#94a3b8' },
+                color: { color: '#94a3b8', highlight: '#6366f1' },
+                width: 2,
                 smooth: { enabled: true, type: 'cubicBezier', roundness: 0.3 }
             });
         });
@@ -318,17 +326,14 @@ export class ClientComponent implements OnInit {
         const options: Options = {
             layout: {
                 hierarchical: {
-                    direction: 'LR',
+                    direction: 'UD',
                     sortMethod: 'directed',
-                    levelSeparation: 200,
-                    nodeSpacing: 100
+                    levelSeparation: 150,
+                    nodeSpacing: 150
                 }
             },
             physics: { enabled: false },
-            interaction: {
-                hover: true,
-                tooltipDelay: 100
-            }
+            interaction: { hover: true, tooltipDelay: 100 }
         };
 
         this.network = new Network(
@@ -337,7 +342,7 @@ export class ClientComponent implements OnInit {
             options
         );
 
-        // ✅ Clic sur un nœud service → dialog suppression
+        // Clic sur nœud service → dialog suppression
         this.network.on('click', (params: any) => {
             if (params.nodes.length > 0) {
                 const nodeId = params.nodes[0];
@@ -381,11 +386,11 @@ export class ClientComponent implements OnInit {
         if (!this.selectedNewServiceId) return;
 
         const payload = {
-            client: { id: this.currentClient.id },
-            service: { id: this.selectedNewServiceId }
+            clientId: this.currentClient.id,
+            serviceId: this.selectedNewServiceId
         };
 
-        this.apiService.createClientService(payload as any).subscribe({
+        this.apiService.createClientService(payload).subscribe({
             next: () => {
                 this.addAssocDialog = false;
                 this.loadAssociations(this.currentClient.id);

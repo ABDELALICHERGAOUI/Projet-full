@@ -7,7 +7,6 @@ import com.example.impactanalyzer.dto.ImpactDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import java.util.*;
 
 @Service
@@ -24,21 +23,19 @@ public class ImpactService {
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
         // ── 1. Construire le graphe ──────────────────────────
-        // Map : serviceId → liste des services qui dépendent de lui
-        // ET Map : serviceId → dépendance (pour récupérer criticality)
         Map<Long, List<Long>> graph = new HashMap<>();
         Map<String, DependencyCriticality> edgeCriticality = new HashMap<>();
 
         for (Dependency d : dependencyRepository.findAll()) {
-            Long from = d.getDependsOn().getId(); // si ce service tombe
-            Long to   = d.getService().getId();   // → ce service est impacté
+            Long from = d.getDependsOn().getId();
+            Long to   = d.getService().getId();
             graph.computeIfAbsent(from, k -> new ArrayList<>()).add(to);
-
-            // clé "from->to" pour retrouver la criticité de ce lien
             edgeCriticality.put(from + "->" + to, d.getCriticality());
         }
 
-        // ── 2. BFS ──────────────────────────────────────────
+        // ── 2. BFS — trouver TOUS les nœuds impactés ────────
+        // BFS = file (Queue) → parcours niveau par niveau
+        // Objectif : trouver quels services sont impactés
         Set<Long> visited = new HashSet<>();
         Queue<Long> queue = new LinkedList<>();
         Map<Long, Long> parent = new HashMap<>();
@@ -56,33 +53,36 @@ public class ImpactService {
                 }
             }
         }
-        visited.remove(serviceId);
+        visited.remove(serviceId); // retirer le service source
 
-        // ── 3. Chemins de propagation (fix bug noms) ─────────
+        // ── 3. DFS — trouver TOUS les chemins de propagation ─
+        // DFS = récursion + backtracking → tous les chemins possibles
+        // Objectif : comment la panne se propage exactement
         List<String> impactPaths = new ArrayList<>();
-        for (Long node : visited) {
-            if (graph.getOrDefault(node, new ArrayList<>()).isEmpty()) {
-                List<Long> path = new ArrayList<>();
-                Long current = node;
-                while (current != null) {
-                    path.add(current);
-                    current = parent.get(current);
-                }
-                Collections.reverse(path);
+        List<List<Long>> allPaths = new ArrayList<>();
 
-                // ✅ FIX : afficher les NOMS, pas les IDs
-                String pathStr = path.stream()
-                        .map(id -> serviceRepository.findById(id)
-                                .map(ServiceEntity::getName)
-                                .orElse("Service#" + id))
-                        .reduce((a, b) -> a + " → " + b)
-                        .orElse("");
+        dfsAllPaths(
+                serviceId,
+                new ArrayList<>(List.of(serviceId)),
+                allPaths,
+                graph,
+                new HashSet<>(Set.of(serviceId))
+        );
 
+        // Convertir IDs → Noms pour chaque chemin
+        for (List<Long> path : allPaths) {
+            String pathStr = path.stream()
+                    .map(id -> serviceRepository.findById(id)
+                            .map(ServiceEntity::getName)
+                            .orElse("Service#" + id))
+                    .reduce((a, b) -> a + " → " + b)
+                    .orElse("");
+            if (!pathStr.isEmpty()) {
                 impactPaths.add(pathStr);
             }
         }
 
-        // ── 4. Services impactés ─────────────────────────────
+        // ── 4. Services impactés (résultat BFS) ─────────────
         List<ServiceEntity> impactedServiceEntities = visited.stream()
                 .map(id -> serviceRepository.findById(id).get())
                 .toList();
@@ -100,12 +100,10 @@ public class ImpactService {
             }
         }
 
-        // ── 6. CALCUL DU SCORE PONDÉRÉ ───────────────────────
+        // ── 6. Calcul du score pondéré ───────────────────────
         double weightedScore = 0.0;
 
         for (ServiceEntity svc : impactedServiceEntities) {
-
-            // Poids du tier du service impacté
             int tierWeight = switch (svc.getTier()) {
                 case CRITICAL -> 4;
                 case HIGH     -> 3;
@@ -113,51 +111,47 @@ public class ImpactService {
                 case LOW      -> 1;
             };
 
-            // Poids de la criticité du lien (dépendance) qui mène à ce service
             Long parentId = parent.get(svc.getId());
-            int critWeight = 2; // MEDIUM par défaut
+            int critWeight = 2;
             if (parentId != null) {
                 DependencyCriticality crit = edgeCriticality
-                        .getOrDefault(parentId + "->" + svc.getId(), DependencyCriticality.MEDIUM);
+                        .getOrDefault(parentId + "->" + svc.getId(),
+                                DependencyCriticality.MEDIUM);
                 critWeight = switch (crit) {
                     case HIGH   -> 3;
                     case MEDIUM -> 2;
                     case LOW    -> 1;
                 };
             }
-
             weightedScore += tierWeight * critWeight;
         }
 
-        // Bonus clients VIP
         for (Client c : impactedClientSet) {
             weightedScore += (c.getSegment() == ClientSegment.VIP) ? 2 : 1;
         }
 
-        // Normalisation en pourcentage
-        // poids max théorique = (nbServices × 4 × 3) + (nbClients × 2)
         long totalServices = serviceRepository.count();
         long totalClients  = clientRepository.count();
         double maxPossible = (totalServices * 4 * 3) + (totalClients * 2);
-
         double impactScore = maxPossible > 0
                 ? Math.min((weightedScore / maxPossible) * 100, 100)
                 : 0.0;
 
-        // Sévérité
         String severity;
-        if (impactScore == 0)        severity = "NONE";
-        else if (impactScore <= 25)  severity = "LOW";
-        else if (impactScore <= 50)  severity = "MEDIUM";
-        else if (impactScore <= 75)  severity = "HIGH";
-        else                         severity = "CRITICAL";
+        if      (impactScore == 0)       severity = "NONE";
+        else if (impactScore <= 25)      severity = "LOW";
+        else if (impactScore <= 50)      severity = "MEDIUM";
+        else if (impactScore <= 75)      severity = "HIGH";
+        else                             severity = "CRITICAL";
 
-        // ── 7. Construire et retourner le DTO ────────────────
+        // ── 7. Construire le DTO ─────────────────────────────
         ImpactDTO dto = new ImpactDTO();
         dto.setFailedServiceId(serviceId);
         dto.setFailedServiceName(failedService.getName());
         dto.setImpactedServices(impactedServiceNames);
-        dto.setImpactedClients(impactedClientSet.stream().map(Client::getName).toList());
+        dto.setImpactedClients(
+                impactedClientSet.stream().map(Client::getName).toList()
+        );
         dto.setImpactScore(impactScore);
         dto.setTotalServicesImpacted(impactedServiceNames.size());
         dto.setTotalClientsImpacted(impactedClientSet.size());
@@ -166,8 +160,42 @@ public class ImpactService {
 
         return dto;
     }
+
+    // ── Méthode DFS récursive ────────────────────────────────
+    // Trouve TOUS les chemins depuis 'current' jusqu'aux feuilles
+    private void dfsAllPaths(
+            Long current,
+            List<Long> currentPath,
+            List<List<Long>> allPaths,
+            Map<Long, List<Long>> graph,
+            Set<Long> visited
+    ) {
+        List<Long> neighbors = graph.getOrDefault(current, new ArrayList<>());
+
+        // Cas d'arrêt : nœud feuille ou tous les voisins déjà visités
+        boolean isLeaf = neighbors.isEmpty();
+        boolean allVisited = neighbors.stream().allMatch(visited::contains);
+
+        if (isLeaf || allVisited) {
+            // Enregistrer le chemin seulement s'il a au moins 2 nœuds
+            if (currentPath.size() > 1) {
+                allPaths.add(new ArrayList<>(currentPath));
+            }
+            return;
+        }
+
+        // Récursion sur chaque voisin non visité
+        for (Long neighbor : neighbors) {
+            if (!visited.contains(neighbor)) {
+                visited.add(neighbor);
+                currentPath.add(neighbor);
+
+                dfsAllPaths(neighbor, currentPath, allPaths, graph, visited);
+
+                // Backtracking — revenir en arrière
+                currentPath.remove(currentPath.size() - 1);
+                visited.remove(neighbor);
+            }
+        }
+    }
 }
-
-
-
-

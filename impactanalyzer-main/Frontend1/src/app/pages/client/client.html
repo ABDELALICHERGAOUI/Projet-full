@@ -211,7 +211,7 @@
     [(visible)]="assocDialog"
     [header]="'Services — ' + (currentClient?.name || '')"
     [modal]="true"
-    [style]="{ width: '700px' }"
+    [style]="{ width: '850px', minHeight: '600px' }"
     [draggable]="false"
     (onHide)="closeAssocDialog()">
 
@@ -270,12 +270,12 @@
                             <i class="pi pi-cog"
                                style="color: var(--primary-color)"></i>
                             <span class="font-semibold">
-                                {{ cs.service?.name }}
+                                {{ cs.serviceName }}
                             </span>
-                            <p-tag [value]="cs.service?.tier || ''"
-                                   [severity]="getTierSeverity(cs.service?.tier)" />
-                            <p-tag [value]="cs.service?.status || ''"
-                                   [severity]="cs.service?.status === 'UP'
+                            <p-tag [value]="cs.serviceTier || ''"
+                                   [severity]="getTierSeverity(cs.serviceTier)" />
+                            <p-tag [value]="cs.serviceStatus || ''"
+                                   [severity]="cs.serviceStatus === 'UP'
                                                ? 'success' : 'danger'" />
                         </div>
                         <p-button icon="pi pi-trash"
@@ -283,7 +283,7 @@
                                   [rounded]="true" [outlined]="true"
                                   [text]="true"
                                   pTooltip="Supprimer l'association"
-                                  (onClick)="selectedAssocNode = {assocId: cs.id, serviceName: cs.service?.name}; deleteNodeDialog = true" />
+                                  (onClick)="selectedAssocNode = {assocId: cs.id, serviceName: cs.serviceName}; deleteNodeDialog = true" />
                     </div>
                 }
             </div>

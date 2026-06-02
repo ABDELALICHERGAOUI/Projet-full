@@ -1,7 +1,9 @@
 package com.example.impactanalyzer.controller;
 
+import com.example.impactanalyzer.dto.ClientServiceDTO;
 import com.example.impactanalyzer.entity.ClientService;
 import com.example.impactanalyzer.repository.ClientServiceRepository;
+import com.example.impactanalyzer.service.ClientServiceService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -10,24 +12,25 @@ import java.util.List;
 @RequestMapping("/client-services")
 public class ClientServiceController {
 
-    private final ClientServiceRepository repo;
+    private final ClientServiceService clientServiceService;
 
-    public ClientServiceController(ClientServiceRepository repo) {
-        this.repo = repo;
+    public ClientServiceController( ClientServiceService clientServiceService) {
+        this.clientServiceService = clientServiceService;
     }
 
     @GetMapping
-    public List<ClientService> getAll() {
-        return repo.findAll();
+    public List<ClientServiceDTO> getAll() {
+
+        return clientServiceService.getAll();
     }
 
     @PostMapping
-    public ClientService create(@RequestBody ClientService clientService) {
-        return repo.save(clientService);
+    public ClientServiceDTO create(@RequestBody ClientServiceDTO dto) {
+        return clientServiceService.create(dto);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        repo.deleteById(id);
+        clientServiceService.delete(id);
     }
 }

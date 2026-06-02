@@ -96,8 +96,7 @@ export class Impact implements OnInit {
             }
         });
     }
-
-    // ✅ Même logique buildGraph — pas de changement
+/*
     buildGraph(impact: ImpactDTO): void {
         if (!this.graphContainer) return;
         if (this.network) { this.network.destroy(); }
@@ -106,15 +105,18 @@ export class Impact implements OnInit {
         const edges: any[] = [];
         const nodeIds = new Set<string>();
 
+        // ✅ Nœud du service en panne
         nodes.push({
             id: impact.failedServiceName,
             label: impact.failedServiceName,
             color: { background: '#ef4444', border: '#b91c1c' },
-            font: { color: '#fff', bold: true },
-            shape: 'box', size: 30
+            font: { color: '#fff', bold: true, size: 14 },
+            shape: 'box',
+            size: 30
         });
         nodeIds.add(impact.failedServiceName);
 
+        // ✅ ÉTAPE 1 — Construire depuis impactPaths (chemins BFS)
         impact.impactPaths.forEach(path => {
             const parts = path.split(' → ');
             parts.forEach((label, i) => {
@@ -124,50 +126,190 @@ export class Impact implements OnInit {
                         id: label, label,
                         color: {
                             background: isLast ? '#f97316' : '#f59e0b',
-                            border: isLast ? '#c2410c' : '#b45309'
+                            border:     isLast ? '#c2410c' : '#b45309'
                         },
-                        font: { color: '#fff' }, shape: 'ellipse'
+                        font: { color: '#fff', size: 13 },
+                        shape: 'ellipse'
                     });
                     nodeIds.add(label);
                 }
                 if (i > 0) {
-                    edges.push({ from: parts[i - 1], to: label, arrows: 'to' });
+                    edges.push({
+                        from: parts[i - 1],
+                        to: label,
+                        arrows: 'to',
+                        color: { color: '#6b7280' },
+                        smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 }
+                    });
                 }
             });
         });
 
-        if (impact.impactPaths.length === 0) {
-            impact.impactedServices.forEach(name => {
-                if (!nodeIds.has(name)) {
-                    nodes.push({
-                        id: name, label: name,
-                        color: { background: '#f59e0b', border: '#b45309' },
-                        font: { color: '#fff' }, shape: 'ellipse'
-                    });
-                    nodeIds.add(name);
-                    edges.push({ from: impact.failedServiceName, to: name, arrows: 'to' });
-                }
-            });
-        }
+        // ✅ ÉTAPE 2 — Ajouter les services impactés NON présents dans les chemins
+        impact.impactedServices.forEach(name => {
+            if (!nodeIds.has(name)) {
+                nodes.push({
+                    id: name,
+                    label: name,
+                    color: {
+                        background: '#a78bfa',   // violet = impacté sans chemin connu
+                        border: '#7c3aed'
+                    },
+                    font: { color: '#fff', size: 13 },
+                    shape: 'ellipse',
+                    borderDashes: [5, 5]         // bordure pointillée
+                });
+                nodeIds.add(name);
+
+                // Relier au service en panne directement
+                edges.push({
+                    from: impact.failedServiceName,
+                    to: name,
+                    arrows: 'to',
+                    dashes: true,                // flèche pointillée = chemin indirect
+                    color: { color: '#a78bfa' },
+                    smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 }
+                });
+            }
+        });
 
         const options: Options = {
             layout: {
                 hierarchical: {
-                    direction: 'LR', sortMethod: 'directed',
-                    levelSeparation: 200, nodeSpacing: 120
+                    direction: 'LR',
+                    sortMethod: 'directed',
+                    levelSeparation: 200,
+                    nodeSpacing: 120
                 }
             },
             physics: { enabled: false },
-            edges: { color: '#6b7280', smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 } },
-            nodes: { margin: { top: 10, right: 15, bottom: 10, left: 15 } }
+            edges: {
+                color: '#6b7280',
+                smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 }
+            },
+            nodes: {
+                margin: { top: 10, right: 15, bottom: 10, left: 15 }
+            }
         };
+
         this.network = new Network(
             this.graphContainer.nativeElement,
             { nodes: new DataSet(nodes), edges: new DataSet(edges) },
             options
         );
     }
+*/
+    buildGraph(impact: ImpactDTO): void {
+        if (!this.graphContainer) return;
+        if (this.network) { this.network.destroy(); }
 
+        const nodes: any[] = [];
+        const edges: any[] = [];
+        const nodeIds = new Set<string>();
+        const edgeKeys = new Set<string>(); // ✅ éviter les arêtes dupliquées
+
+        // Nœud du service en panne
+        nodes.push({
+            id: impact.failedServiceName,
+            label: impact.failedServiceName,
+            color: { background: '#ef4444', border: '#b91c1c' },
+            font: { color: '#fff', bold: true, size: 14 },
+            shape: 'box',
+            size: 30
+        });
+        nodeIds.add(impact.failedServiceName);
+
+        // ✅ Construire depuis impactPaths (DFS backend)
+        // Maintenant impactPaths contient TOUS les chemins
+        impact.impactPaths.forEach(path => {
+            const parts = path.split(' → ');
+            parts.forEach((label, i) => {
+
+                // Ajouter le nœud si pas encore présent
+                if (!nodeIds.has(label)) {
+                    const isLast = i === parts.length - 1;
+                    nodes.push({
+                        id: label,
+                        label,
+                        color: {
+                            background: isLast ? '#f97316' : '#f59e0b',
+                            border:     isLast ? '#c2410c' : '#b45309'
+                        },
+                        font: { color: '#fff', size: 13 },
+                        shape: 'ellipse'
+                    });
+                    nodeIds.add(label);
+                }
+
+                // Ajouter l'arête si pas encore présente
+                if (i > 0) {
+                    const edgeKey = `${parts[i-1]}→${label}`;
+                    if (!edgeKeys.has(edgeKey)) {  // ✅ pas de doublon
+                        edges.push({
+                            from: parts[i - 1],
+                            to: label,
+                            arrows: 'to',
+                            color: { color: '#6b7280' },
+                            smooth: {
+                                enabled: true,
+                                type: 'cubicBezier',
+                                roundness: 0.5
+                            }
+                        });
+                        edgeKeys.add(edgeKey);
+                    }
+                }
+            });
+        });
+
+        // ✅ Sécurité : ajouter services restants si DFS n'a pas tout couvert
+        impact.impactedServices.forEach(name => {
+            if (!nodeIds.has(name)) {
+                nodes.push({
+                    id: name,
+                    label: name,
+                    color: { background: '#a78bfa', border: '#7c3aed' },
+                    font: { color: '#fff', size: 13 },
+                    shape: 'ellipse',
+                    borderDashes: [5, 5]
+                });
+                nodeIds.add(name);
+                edges.push({
+                    from: impact.failedServiceName,
+                    to: name,
+                    arrows: 'to',
+                    dashes: true,
+                    color: { color: '#a78bfa' },
+                    smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 }
+                });
+            }
+        });
+
+        const options: Options = {
+            layout: {
+                hierarchical: {
+                    direction: 'LR',
+                    sortMethod: 'directed',
+                    levelSeparation: 200,
+                    nodeSpacing: 120
+                }
+            },
+            physics: { enabled: false },
+            edges: {
+                color: '#6b7280',
+                smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 }
+            },
+            nodes: {
+                margin: { top: 10, right: 15, bottom: 10, left: 15 }
+            }
+        };
+
+        this.network = new Network(
+            this.graphContainer.nativeElement,
+            { nodes: new DataSet(nodes), edges: new DataSet(edges) },
+            options
+        );
+    }
     getSeverity(): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | null | undefined {
         const map: any = {
             NONE: 'success',
