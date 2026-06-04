@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
 import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '@/app/layout/service/layout.service';
+import { AuthService } from '@/app/services/auth';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-topbar',
@@ -33,14 +35,19 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                         />
                     </g>
                 </svg>
-                <span>SDIA</span>
+                <span class="layout-topbar-logo-text">SDIA</span>
+
             </a>
         </div>
 
         <div class="layout-topbar-actions">
             <div class="layout-config-menu">
                 <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()">
-                    <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
+                    <i
+                            class="pi"
+                            [class.pi-moon]="layoutService.isDarkTheme()"
+                            [class.pi-sun]="!layoutService.isDarkTheme()">
+                    </i>
                 </button>
                 <div class="relative">
                     <button
@@ -50,7 +57,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                         enterActiveClass="animate-scalein"
                         leaveToClass="hidden"
                         leaveActiveClass="animate-fadeout"
-                        [hideOnOutsideClick]="true"
+                        hideOnOutsideClick="true"
                     >
                         <i class="pi pi-palette"></i>
                     </button>
@@ -58,38 +65,117 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 </div>
             </div>
 
-            <button class="layout-topbar-menu-button layout-topbar-action" pStyleClass="@next" enterFromClass="hidden" enterActiveClass="animate-scalein" leaveToClass="hidden" leaveActiveClass="animate-fadeout" [hideOnOutsideClick]="true">
+            <button class="layout-topbar-menu-button layout-topbar-action" pStyleClass="@next" enterFromClass="hidden" enterActiveClass="animate-scalein" leaveToClass="hidden" leaveActiveClass="animate-fadeout" hideOnOutsideClick="true">
                 <i class="pi pi-ellipsis-v"></i>
             </button>
 
-            <div class="layout-topbar-menu hidden lg:block">
-                <div class="layout-topbar-menu-content">
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-calendar"></i>
-                        <span>Calendar</span>
-                    </button>
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-inbox"></i>
-                        <span>Messages</span>
-                    </button>
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-user"></i>
-                        <span>Profile</span>
-                    </button>
-                </div>
+
+            <!-- Actions droite -->
+            <div class="layout-topbar-actions">
+
+
+                <button
+                        type="button"
+                        class="admin-info admin-action"
+                        (click)="goToChangePassword()"
+                        title="Changer le mot de passe">
+                    <i class="pi pi-user admin-icon"></i>
+                    <span class="admin-name">{{ getUsername() }}</span>
+                    <i class="pi pi-key admin-key-icon"></i>
+                </button>
+                <button class="logout-btn"
+                        (click)="logout()"
+                        title="Se déconnecter">
+                    <i class="pi pi-sign-out"></i>
+                    <span>Déconnexion</span>
+                </button>
+
             </div>
         </div>
-    </div>`
+    </div>`,
+    styles: [`
+      .admin-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: var(--surface-ground);
+        border-radius: 20px;
+        border: 1px solid var(--surface-border);
+        font-family: inherit;
+      }
+
+      .admin-action {
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .admin-action:hover {
+        background: color-mix(in srgb, var(--primary-color), transparent 90%);
+        border-color: var(--primary-color);
+      }
+
+      .admin-icon {
+        color: var(--primary-color);
+        font-size: 1rem;
+      }
+
+      .admin-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-color);
+      }
+
+      .admin-key-icon {
+        color: var(--text-color-secondary);
+        font-size: 0.85rem;
+      }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #fca5a5;
+        }
+    `]
 })
 export class AppTopbar {
     items!: MenuItem[];
 
     layoutService = inject(LayoutService);
 
+    constructor(private authService: AuthService,private router: Router) {
+    }
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({
             ...state,
             darkTheme: !state.darkTheme
         }));
+    }
+    getUsername(): string {
+        // Adapte selon comment ton AuthService stocke le user
+        return this.authService.getUsername()
+            || localStorage.getItem('username')
+            || 'Admin';
+    }
+
+    logout(): void {
+        this.authService.logout();
+        this.router.navigate(['/auth/login']);
+    }
+    goToChangePassword(): void {
+        this.router.navigate(['/change-password']);
     }
 }

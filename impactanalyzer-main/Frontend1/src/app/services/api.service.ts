@@ -104,5 +104,18 @@ export class ApiService {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.post<any>(`${this.baseUrl}/auth/change-password`, data, { headers });
   }
+  //=========== Reporting ==================
+
+    getTopCriticalServices(): Observable<any[]> {
+        return this.http.get<any[]>(
+            `${this.baseUrl}/reports/top-critical-services`
+        );
+    }
+
+    getBlastRadius(): Observable<any[]> {
+        return this.http.get<any[]>(
+            `${this.baseUrl}/reports/blast-radius`
+        );
+    }
 
 }

@@ -34,44 +34,11 @@ export class AppMenu {
                     { label: 'Services',     icon: 'pi pi-fw pi-cog',      routerLink: ['/pages/service'] },
                     { label: 'Impact',       icon: 'pi pi-fw pi-chart-bar',routerLink: ['/pages/impact'] },
                     { label: 'Topologie', icon: 'pi pi-fw pi-share-alt',routerLink: ['/pages/topology'] },
+                    { label: 'Rapports',  icon: 'pi pi-fw pi-chart-bar',
+                        routerLink: ['/pages/reports'] },
 
                 ]
             },
-            {
-                label: 'Pages',
-                icon: 'pi pi-fw pi-briefcase',
-                path: '/pages',
-                items: [
-
-                    {
-                        label: 'Auth',
-                        icon: 'pi pi-fw pi-user',
-                        path: '/auth',
-                        items: [
-                            {
-                                label: 'Login',
-                                icon: 'pi pi-fw pi-sign-in',
-                                routerLink: ['/auth/login']
-                            },
-                            {
-                                label: 'Error',
-                                icon: 'pi pi-fw pi-times-circle',
-                                routerLink: ['/auth/error']
-                            },
-                            {
-                                label: 'Access Denied',
-                                icon: 'pi pi-fw pi-lock',
-                                routerLink: ['/auth/access']
-                            }
-                        ]
-                    },
-                    {
-                        label: 'Not Found',
-                        icon: 'pi pi-fw pi-exclamation-circle',
-                        routerLink: ['/pages/notfound']
-                    }
-                ]
-            }
         ];
     }
 }
