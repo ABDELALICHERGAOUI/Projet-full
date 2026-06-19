@@ -28,10 +28,16 @@ export class AppMenu {
                 items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
             },
             {
-                label: 'Gestion',
+                label: 'GESTION',
                 items: [
                     { label: 'Clients',      icon: 'pi pi-fw pi-users',    routerLink: ['/pages/client'] },
                     { label: 'Services',     icon: 'pi pi-fw pi-cog',      routerLink: ['/pages/service'] },
+
+                ]
+            },
+            {
+                label: 'ANALYSE',
+                items: [
                     { label: 'Impact',       icon: 'pi pi-fw pi-chart-bar',routerLink: ['/pages/impact'] },
                     { label: 'Topologie', icon: 'pi pi-fw pi-share-alt',routerLink: ['/pages/topology'] },
                     { label: 'Rapports',  icon: 'pi pi-fw pi-chart-bar',

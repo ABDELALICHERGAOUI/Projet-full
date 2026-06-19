@@ -9,10 +9,59 @@ import { LayoutService } from '@/app/layout/service/layout.service';
     standalone: true,
     imports: [AppMenu, RouterModule],
     template: `
-        <div class="layout-sidebar">
-            <app-menu></app-menu>
+        <div class="layout-sidebar sidebar-with-footer">
+            <div class="sidebar-menu-content">
+                <app-menu></app-menu>
+            </div>
+            <div class="sidebar-footer">
+                <img
+                    src="/demo/images/img.png"
+                    alt="Logo NTT DATA"
+                    class="ntt-logo"
+                />
+            </div>
         </div>
-    `
+    `,
+    styles: [`
+        :host {
+            display: block;
+            height: 100%;
+        }
+
+        .sidebar-with-footer {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 4rem);
+        }
+
+        .sidebar-menu-content {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 0.2rem 0.5rem 1rem;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .sidebar-footer-text {
+            display: block;
+            font-size: 0.72rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .ntt-logo {
+            max-width: 200px;
+            height: auto;
+            object-fit: contain;
+            opacity: 0.85;
+        }
+    `]
 })
 export class AppSidebar implements OnInit, OnDestroy {
     layoutService = inject(LayoutService);

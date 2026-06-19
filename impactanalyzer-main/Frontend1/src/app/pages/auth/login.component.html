@@ -1,99 +1,162 @@
-<div class="bg-surface-50 dark:bg-surface-950 flex items-center
-            justify-center min-h-screen min-w-[100vw] overflow-hidden">
-    <div class="flex flex-col items-center justify-center">
+<div class="login-page">
 
-        <!-- Logo SDIA -->
-        <div style="border-radius: 56px; padding: 0.3rem;
-                    background: linear-gradient(180deg, var(--primary-color) 10%,
-                    rgba(33, 150, 243, 0) 30%)">
-            <div class="w-full surface-card py-8 px-8 sm:px-8"
-                 style="border-radius: 53px">
+    <div class="login-background-shape shape-one"></div>
+    <div class="login-background-shape shape-two"></div>
 
-                <!-- Titre -->
-                <div class="text-center mb-8">
-                    <div class="flex justify-center mb-4">
-                        <i class="pi pi-chart-network"
-                           style="font-size: 3rem; color: var(--primary-color)"></i>
+    <main class="login-panel">
+
+        <!-- Header -->
+        <section class="login-header-zone">
+            <div class="project-logo">
+                <i class="pi pi-sitemap"></i>
+            </div>
+
+            <div class="project-title">
+                <h1>SDIA</h1>
+                <p>Smart Dependency Impact Analyzer</p>
+            </div>
+        </section>
+
+        <!-- Content -->
+        <section class="login-content">
+
+            <!-- Partie gauche courte -->
+            <div class="login-info">
+                <span class="app-badge">Enterprise Risk Platform</span>
+
+                <h2>Gestion intelligente des dépendances de services</h2>
+
+                <p>
+                    Connectez-vous pour accéder au tableau de bord, gérer les services,
+                    analyser les dépendances et simuler l’impact des pannes.
+                </p>
+
+                <div class="info-list">
+                    <div class="info-item">
+                        <span><i class="pi pi-database"></i></span>
+                        <div>
+                            <h3>Services & Clients</h3>
+                            <p>Gestion centralisée des composants métier.</p>
+                        </div>
                     </div>
-                    <div class="text-surface-900 dark:text-surface-0
-                                text-3xl font-medium mb-3">
-                        Bienvenue sur SDIA !
+
+                    <div class="info-item">
+                        <span><i class="pi pi-bolt"></i></span>
+                        <div>
+                            <h3>Simulation d’impact</h3>
+                            <p>Analyse des pannes et du blast radius.</p>
+                        </div>
                     </div>
-                    <span class="text-muted-color font-medium">
-                        Smart Dependency Impact Analyzer
+
+                    <div class="info-item">
+                        <span><i class="pi pi-chart-bar"></i></span>
+                        <div>
+                            <h3>Reporting</h3>
+                            <p>Indicateurs pour l’aide à la décision.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <div class="login-form-card">
+
+                <div class="form-header">
+                    <span class="secure-badge">
+                        <i class="pi pi-lock"></i>
+                        Accès administrateur
                     </span>
+
+                    <h2>Connexion</h2>
+
+                    <p>
+                        Veuillez saisir vos identifiants pour accéder à la plateforme SDIA.
+                    </p>
                 </div>
 
-                <!-- Message erreur -->
                 @if (errorMessage) {
                     <p-message
                         severity="error"
                         [text]="errorMessage"
-                        styleClass="w-full mb-4" />
+                        styleClass="w-full mb-4">
+                    </p-message>
                 }
 
-                <!-- Formulaire -->
-                <div>
-                    <!-- Nom d'utilisateur -->
-                    <label class="block text-surface-900 dark:text-surface-0
-                                  text-xl font-medium mb-2">
-                        Nom d'utilisateur
-                    </label>
-                    <input
-                        pInputText
-                        id="username"
-                        type="text"
-                        placeholder="Entrez votre nom d'utilisateur"
-                        class="w-full md:w-[30rem] mb-8"
-                        [(ngModel)]="username"
-                        (keyup.enter)="login()" />
+                <form #loginForm="ngForm" (ngSubmit)="login()" class="login-form">
 
-                    <!-- Mot de passe -->
-                    <label class="block text-surface-900 dark:text-surface-0
-                                  font-medium text-xl mb-2">
-                        Mot de passe
-                    </label>
-                    <p-password
-                        id="password"
-                        [(ngModel)]="password"
-                        placeholder="Entrez votre mot de passe"
-                        [toggleMask]="true"
-                        styleClass="mb-4"
-                        [fluid]="true"
-                        [feedback]="false"
-                        (keyup.enter)="login()">
-                    </p-password>
+                    <!-- Username -->
+                    <div class="form-field">
+                        <label for="username">Nom d’utilisateur</label>
 
-                    <!-- Remember me -->
-                    <div class="flex items-center justify-between mb-8 gap-8">
-                        <div class="flex items-center">
-                            <p-checkbox
-                                [(ngModel)]="rememberMe"
-                                id="rememberme"
-                                binary
-                                class="mr-2">
-                            </p-checkbox>
-                            <label for="rememberme">Se souvenir de moi</label>
+                        <div class="custom-input">
+                            <i class="pi pi-user"></i>
+                            <input
+                                pInputText
+                                id="username"
+                                name="username"
+                                type="text"
+                                placeholder="Exemple : admin"
+                                [(ngModel)]="username"
+                                required
+                                autocomplete="username"
+                            />
                         </div>
                     </div>
 
-                    <!-- Bouton connexion -->
+                    <!-- Password -->
+                    <div class="form-field">
+                        <label for="password">Mot de passe</label>
+
+                        <p-password
+                            id="password"
+                            name="password"
+                            [(ngModel)]="password"
+                            placeholder="Entrez votre mot de passe"
+                            [toggleMask]="true"
+                            [feedback]="false"
+                            [fluid]="true"
+                            required
+                            autocomplete="current-password"
+                            styleClass="custom-password">
+                        </p-password>
+                    </div>
+
+                    <div class="form-options">
+                        <div class="remember-me">
+                            <p-checkbox
+                                inputId="rememberMe"
+                                name="rememberMe"
+                                [(ngModel)]="rememberMe"
+                                [binary]="true">
+                            </p-checkbox>
+
+                            <label for="rememberMe">Se souvenir de moi</label>
+                        </div>
+
+                        <span>Mot de passe oublié ?</span>
+                    </div>
+
                     <p-button
+                        type="submit"
                         label="Se connecter"
                         icon="pi pi-sign-in"
-                        styleClass="w-full"
+                        styleClass="submit-button"
                         [loading]="loading"
-                        (onClick)="login()">
+                        [disabled]="loginForm.invalid || loading">
                     </p-button>
 
-                </div>
-
-                <!-- Footer -->
-                <p class="text-center text-muted-color text-sm mt-6 mb-0">
-                    NTT Data © 2025 — Administration
-                </p>
+                </form>
 
             </div>
-        </div>
-    </div>
+
+        </section>
+
+        <!-- Footer -->
+        <section class="login-footer">
+            <span>NTT DATA © 2026</span>
+            <span>SDIA Administration Platform</span>
+        </section>
+
+    </main>
+
 </div>

@@ -1,0 +1,410 @@
+.login-page {
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(135deg, var(--surface-ground) 0%, var(--surface-50) 45%, var(--surface-100) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+/* Formes décoratives */
+.login-background-shape {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(8px);
+    opacity: 0.35;
+}
+
+.shape-one {
+    width: 340px;
+    height: 340px;
+    top: -120px;
+    left: -100px;
+    background: color-mix(in srgb, var(--primary-color) 35%, transparent);
+}
+
+.shape-two {
+    width: 420px;
+    height: 420px;
+    right: -150px;
+    bottom: -150px;
+    background: color-mix(in srgb, var(--primary-color) 22%, transparent);
+}
+
+/* Panel principal */
+.login-panel {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1120px;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 30px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+    padding: 2rem;
+}
+
+/* Header */
+.login-header-zone {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.project-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--primary-color), #22c55e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 30px color-mix(in srgb, var(--primary-color) 25%, transparent);
+}
+
+.project-logo i {
+    color: #ffffff;
+    font-size: 1.45rem;
+}
+
+.project-title h1 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.project-title p {
+    margin: 0.25rem 0 0;
+    color: var(--text-color-secondary);
+    font-size: 0.95rem;
+}
+
+/* Layout */
+.login-content {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 3rem;
+    padding: 3rem 0 2rem;
+}
+
+/* Partie information */
+.login-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem 1.5rem 1rem 0;
+}
+
+.app-badge {
+    width: fit-content;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+    color: var(--primary-color);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 1.4rem;
+}
+
+.login-info h2 {
+    max-width: 560px;
+    margin: 0;
+    color: var(--text-color);
+    font-size: 2.55rem;
+    line-height: 1.15;
+    font-weight: 800;
+}
+
+.login-info > p {
+    max-width: 600px;
+    margin: 1.3rem 0 2rem;
+    color: var(--text-color-secondary);
+    line-height: 1.8;
+    font-size: 1rem;
+}
+
+.info-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    max-width: 620px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 18px;
+    background: var(--surface-50);
+    border: 1px solid var(--surface-border);
+}
+
+.info-item span {
+    min-width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-item span i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.info-item h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 0.98rem;
+    font-weight: 800;
+}
+
+.info-item p {
+    margin: 0.25rem 0 0;
+    color: var(--text-color-secondary);
+    font-size: 0.88rem;
+}
+
+/* Carte formulaire */
+.login-form-card {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.form-header {
+    margin-bottom: 1.8rem;
+}
+
+.secure-badge {
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.42rem 0.75rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, #22c55e 13%, transparent);
+    color: #16a34a;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.form-header h2 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.form-header p {
+    margin: 0.75rem 0 0;
+    color: var(--text-color-secondary);
+    line-height: 1.65;
+    font-size: 0.92rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 0.55rem;
+    color: var(--text-color);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* Input personnalisé */
+.custom-input {
+    width: 100%;
+    height: 3.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-0);
+    border-radius: 14px;
+    padding: 0 1rem;
+    transition: 0.2s ease;
+}
+
+.custom-input:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary-color) 18%, transparent);
+}
+
+.custom-input i {
+    color: var(--text-color-secondary);
+    font-size: 1rem;
+}
+
+.custom-input input {
+    width: 100%;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    color: var(--text-color);
+}
+
+.custom-input input::placeholder {
+    color: var(--text-color-secondary);
+}
+
+/* Password PrimeNG */
+:host ::ng-deep .custom-password {
+    width: 100%;
+}
+
+:host ::ng-deep .custom-password .p-password {
+    width: 100%;
+}
+
+:host ::ng-deep .custom-password .p-inputtext {
+    width: 100%;
+    height: 3.2rem;
+    border-radius: 14px;
+    padding-left: 1rem;
+}
+
+:host ::ng-deep .custom-password .p-inputtext:enabled:focus {
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary-color) 18%, transparent);
+    border-color: var(--primary-color);
+}
+
+/* Options */
+.form-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.remember-me label {
+    color: var(--text-color-secondary);
+    font-size: 0.9rem;
+}
+
+.form-options > span {
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+/* Button */
+:host ::ng-deep .submit-button {
+    width: 100%;
+    height: 3.3rem;
+    border-radius: 14px;
+    font-weight: 800;
+    margin-top: 0.25rem;
+}
+
+:host ::ng-deep .submit-button .p-button-label {
+    font-weight: 800;
+}
+
+/* Footer */
+.login-footer {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--surface-border);
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-color-secondary);
+    font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .login-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .login-info {
+        padding-right: 0;
+    }
+
+    .login-info h2 {
+        font-size: 2.1rem;
+    }
+
+    .login-form-card {
+        max-width: 520px;
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .login-page {
+        padding: 1rem;
+    }
+
+    .login-panel {
+        padding: 1.25rem;
+        border-radius: 22px;
+    }
+
+    .login-header-zone {
+        align-items: flex-start;
+    }
+
+    .project-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
+    }
+
+    .project-title h1 {
+        font-size: 1.45rem;
+    }
+
+    .login-content {
+        padding: 2rem 0 1.5rem;
+    }
+
+    .login-info h2 {
+        font-size: 1.75rem;
+    }
+
+    .login-form-card {
+        padding: 1.35rem;
+    }
+
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .login-footer {
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+}

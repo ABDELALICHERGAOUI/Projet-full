@@ -1,0 +1,224 @@
+/* =========================================================
+   SDIA — Global Layout Overrides
+   Fichier : src/assets/layout/_sdia-overrides.scss
+   Import  : après tous les autres dans styles.scss
+   ========================================================= */
+
+/* ── Typographie globale ─────────────────────────────── */
+
+html {
+    font-size: 17px;
+    line-height: 1.45;
+    overflow-x: hidden;
+}
+
+body {
+    font-size: 1rem;
+    //background: #f6f8fb;
+    overflow-x: hidden;
+}
+
+.layout-wrapper {
+    min-width: 320px;
+    overflow-x: hidden;
+}
+
+/* ── Main Content ────────────────────────────────────── */
+
+.layout-main-container {
+    padding: 5.25rem 1.75rem 0 1.75rem;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.layout-main {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding-bottom: 2rem;
+    min-width: 0;
+}
+
+/* ── Topbar ──────────────────────────────────────────── */
+
+.layout-topbar {
+    height: 4.5rem;
+    padding: 0 1.75rem;
+    background-color: var(--surface-card);
+    border-bottom: 1px solid var(--surface-border);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.layout-topbar .layout-topbar-logo-container {
+    width: 21.5rem;
+}
+
+.layout-topbar .layout-topbar-logo {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.layout-topbar .layout-topbar-action {
+    width: 2.75rem;
+    height: 2.75rem;
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+
+.layout-sidebar {
+    top: 5.25rem;
+    left: 1.5rem;
+    width: 20.5rem;
+    height: calc(100vh - 6.25rem);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow: hidden;
+    background-color: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 18px;
+
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, 0.08),
+        0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.layout-sidebar app-menu {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+/* Footer de la sidebar : logo NTT DATA */
+.layout-sidebar .sidebar-footer,
+.layout-sidebar .ntt-footer,
+.layout-sidebar .layout-sidebar-footer {
+    flex: 0 0 auto;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--surface-border);
+    text-align: center;
+}
+
+.layout-sidebar .sidebar-footer img,
+.layout-sidebar .ntt-footer img,
+.layout-sidebar .layout-sidebar-footer img {
+    max-width: 130px;
+    height: auto;
+}
+
+/* Scrollbar sidebar */
+.layout-sidebar app-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.layout-sidebar app-menu::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+
+.layout-sidebar app-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ── Menu items ──────────────────────────────────────── */
+
+.layout-menu .layout-root-menuitem > .layout-menuitem-root-text {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    margin: 1rem 0 0.5rem;
+}
+
+.layout-menu ul a {
+    min-height: 2.75rem;
+    padding: 0.8rem 0.95rem;
+    border-radius: 12px;
+    font-weight: 500;
+    color: #334155;
+}
+
+.layout-menu ul a .layout-menuitem-icon {
+    font-size: 1rem;
+    margin-right: 0.75rem;
+    color: #64748b;
+}
+
+.layout-menu ul a:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.layout-menu ul a.active-route {
+    background: #e8f0ff;
+    //color: #2563eb;
+    color: var(--primary-color);
+
+    font-weight: 700;
+}
+
+.layout-menu ul a.active-route .layout-menuitem-icon {
+    //color: #2563eb;
+    color: var(--primary-color);
+
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+
+@media (min-width: 992px) {
+    .layout-wrapper.layout-static .layout-main-container {
+        margin-left: 22.5rem;
+    }
+
+    .layout-wrapper.layout-static.layout-static-inactive .layout-main-container {
+        margin-left: 0;
+        padding-left: 1.75rem;
+    }
+
+    .layout-wrapper.layout-overlay .layout-main-container {
+        margin-left: 0;
+        padding-left: 1.75rem;
+    }
+}
+
+@media (max-width: 991px) {
+    html {
+        font-size: 14px;
+    }
+
+    .layout-main-container {
+        margin-left: 0;
+        padding: 5rem 1rem 0 1rem;
+    }
+
+    .layout-main {
+        max-width: 100%;
+    }
+
+    .layout-topbar {
+        height: 4rem;
+        padding: 0 1rem;
+    }
+
+    .layout-sidebar {
+        top: 0;
+        left: 0;
+        width: 17rem;
+        height: 100vh;
+        border-radius: 0;
+        border-left: none;
+        border-top: none;
+        border-bottom: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .layout-main-container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+
+}

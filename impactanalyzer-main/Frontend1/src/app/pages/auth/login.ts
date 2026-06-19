@@ -20,10 +20,12 @@ import { RippleModule } from 'primeng/ripple';
         InputTextModule, PasswordModule,
         MessageModule, RippleModule
     ],
-    templateUrl: './login.component.html'
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.css'
+
 })
 export class Login {
-    username = '';   // ✅ ton champ (pas email)
+    username = '';
     password = '';
     rememberMe = false;
     errorMessage = '';
@@ -42,11 +44,10 @@ export class Login {
         this.loading = true;
         this.errorMessage = '';
 
-        // ✅ ton AuthService branché ici
         this.authService.login(this.username, this.password).subscribe({
             next: () => {
                 this.loading = false;
-                this.router.navigate(['/pages/client']);
+                this.router.navigate(['/pages/dashboard']);
             },
             error: () => {
                 this.loading = false;

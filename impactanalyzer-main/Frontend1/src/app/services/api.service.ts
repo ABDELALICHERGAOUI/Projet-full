@@ -23,14 +23,21 @@ export class ApiService {
   getServiceById(id: number): Observable<Service> {
     return this.http.get<Service>(`${this.baseUrl}/services/${id}`);
   }
-
+/*
   createService(service: Service): Observable<Service> {
     return this.http.post<Service>(`${this.baseUrl}/services`, service);
   }
 
   updateService(id: number, service: Service): Observable<Service> {
     return this.http.put<Service>(`${this.baseUrl}/services/${id}`, service);
-  }
+  }*/
+    createService(service: any): Observable<any> {  // ✅ any pour payload flexible
+        return this.http.post<any>(`${this.baseUrl}/services`, service);
+    }
+
+    updateService(id: number, service: any): Observable<any> {  // ✅ any pour payload flexible
+        return this.http.put<any>(`${this.baseUrl}/services/${id}`, service);
+    }
 
   deleteService(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/services/${id}`);
@@ -100,11 +107,14 @@ export class ApiService {
   }
 // ========== AUTH ==========
   changePassword(data: { oldPassword: string; newPassword: string }): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.post<any>(`${this.baseUrl}/auth/change-password`, data, { headers });
+   // const token = localStorage.getItem('token');
+   // const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    //return this.http.post<any>(`${this.baseUrl}/auth/change-password`, data, { headers });
+      return this.http.post<any>(`${this.baseUrl}/auth/change-password`, data);
+
   }
   //=========== Reporting ==================
+
 
     getTopCriticalServices(): Observable<any[]> {
         return this.http.get<any[]>(
@@ -119,3 +129,132 @@ export class ApiService {
     }
 
 }
+
+/*
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Client } from '../models/client.model';
+import { Dependency } from '../models/dependency.model';
+import { ImpactDTO } from '../models/impact.dto.model';
+import { ClientService } from '../models/ClientService.model';
+
+@Injectable({
+    providedIn: 'root',
+})
+export class ApiService {
+    private baseUrl = 'http://localhost:8080';
+
+    constructor(private http: HttpClient) {}
+
+    // ========== SERVICES ==========
+
+    getServices(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.baseUrl}/services`);
+    }
+
+    getServiceById(id: number): Observable<any> {
+        return this.http.get<any>(`${this.baseUrl}/services/${id}`);
+    }
+
+    createService(service: any): Observable<any> {  // ✅ any pour payload flexible
+        return this.http.post<any>(`${this.baseUrl}/services`, service);
+    }
+
+    updateService(id: number, service: any): Observable<any> {  // ✅ any pour payload flexible
+        return this.http.put<any>(`${this.baseUrl}/services/${id}`, service);
+    }
+
+    deleteService(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/services/${id}`);
+    }
+
+    updateServiceStatus(id: number, status: string): Observable<void> {
+        return this.http.patch<void>(`${this.baseUrl}/services/${id}`, status);
+    }
+
+    // ========== CLIENTS ==========
+
+    getAllClients(): Observable<Client[]> {
+        return this.http.get<Client[]>(`${this.baseUrl}/clients`);
+    }
+
+    getClientById(id: number): Observable<Client> {
+        return this.http.get<Client>(`${this.baseUrl}/clients/${id}`);
+    }
+
+    createClient(client: any): Observable<Client> {
+        return this.http.post<Client>(`${this.baseUrl}/clients`, client);
+    }
+
+    updateClient(id: number, client: any): Observable<Client> {
+        return this.http.put<Client>(`${this.baseUrl}/clients/${id}`, client);
+    }
+
+    deleteClient(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/clients/${id}`);
+    }
+
+    deleteMultipleClients(ids: number[]): Observable<any> {
+        return this.http.delete(`${this.baseUrl}/clients/batch`, { body: ids });
+    }
+
+    // ========== DEPENDANCES ==========
+
+    getDependencies(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.baseUrl}/dependencies`);
+    }
+
+    getDependencyById(id: number): Observable<Dependency> {
+        return this.http.get<Dependency>(`${this.baseUrl}/dependencies/${id}`);
+    }
+
+    createDependency(dependency: any): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/dependencies`, dependency);
+    }
+
+    deleteDependency(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/dependencies/${id}`);
+    }
+
+    // ========== IMPACT ==========
+
+    simulateImpact(serviceId: number): Observable<ImpactDTO> {
+        return this.http.post<ImpactDTO>(
+            `${this.baseUrl}/simulate/impact`,
+            { serviceId }  // ✅ body avec serviceId
+        );
+    }
+
+    // ========== CLIENT-SERVICES ==========
+
+    getAllClientServices(): Observable<ClientService[]> {
+        return this.http.get<ClientService[]>(`${this.baseUrl}/client-services`);
+    }
+
+    createClientService(cs: ClientService): Observable<ClientService> {
+        return this.http.post<ClientService>(`${this.baseUrl}/client-services`, cs);
+    }
+
+    deleteClientService(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/client-services/${id}`);
+    }
+
+    // ========== AUTH ==========
+
+    changePassword(data: { oldPassword: string; newPassword: string }): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/auth/change-password`, data);
+    }
+
+    // ========== REPORTING ==========
+
+    getTopCriticalServices(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.baseUrl}/reports/top-critical-services`);
+    }
+
+    getBlastRadius(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.baseUrl}/reports/blast-radius`);
+    }
+}
+
+ */

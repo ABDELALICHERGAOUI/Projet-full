@@ -4,14 +4,15 @@ import { provideRouter, withEnabledBlockingInitialNavigation, withInMemoryScroll
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 import { appRoutes } from './app.routes';
-import { authInterceptor } from './app/interceptors/auth.interceptor'; // ← ajouté
-
+import { authInterceptor } from './app/interceptors/auth.interceptor';
 export const appConfig: ApplicationConfig = {
     providers: [
-        provideRouter(appRoutes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }), withEnabledBlockingInitialNavigation()),
-        provideHttpClient(withFetch()),
+        provideRouter(appRoutes, withInMemoryScrolling(
+            { anchorScrolling: 'enabled',
+                scrollPositionRestoration: 'enabled' }),
+            withEnabledBlockingInitialNavigation()),
         provideZonelessChangeDetection(),
-        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClient(withFetch(),withInterceptors([authInterceptor])),
         providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } } })
     ]
 };

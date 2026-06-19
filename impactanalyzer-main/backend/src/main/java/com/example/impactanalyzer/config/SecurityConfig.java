@@ -27,9 +27,9 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/impact/**").permitAll()
+                        //.requestMatchers("/impact/**").permitAll()
                         .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/services/**").permitAll()
+                        //.requestMatchers("/services/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess ->

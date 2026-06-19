@@ -8,5 +8,4 @@ export default [
     { path: 'access', component: Access },
     { path: 'error', component: Error },
     { path: 'login', component: Login },
-    {path: 'change-password' , component: ChangePassword}
 ] as Routes;

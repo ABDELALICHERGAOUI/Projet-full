@@ -1,4 +1,10 @@
+
 /* You can add global styles to this file, and also import other style files */
 @use 'primeicons/primeicons.css';
 @use '@/assets/layout/layout.scss';
 @use '@/assets/demo/demo.scss';
+
+/* SDIA custom styles */
+//@use '@/assets/layout/sdia-overrides';
+
+@use './layout/sdia-overrides';

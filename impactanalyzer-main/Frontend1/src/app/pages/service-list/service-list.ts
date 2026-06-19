@@ -2,6 +2,7 @@ import { Network, Options } from 'vis-network';
 import { DataSet } from 'vis-data';
 import { Component, OnInit, ChangeDetectorRef,
     ViewChild, ElementRef } from '@angular/core';
+import { ApiService } from '../../services/api.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -21,6 +22,8 @@ import { TagModule } from 'primeng/tag';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DividerModule } from 'primeng/divider';
 import { TooltipModule } from 'primeng/tooltip';
+import { AuthService } from '@/app/services/auth';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -104,8 +107,10 @@ export class ServiceListComponent implements OnInit {
         private http: HttpClient,
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private apiService: ApiService,
     ) {}
+
 
     ngOnInit(): void {
         this.loadServices();
@@ -171,6 +176,7 @@ export class ServiceListComponent implements OnInit {
             next: () => {
                 this.closeServiceModal();
                 this.loadServices();
+                /*
                 this.messageService.add({
                     severity: 'success',
                     summary: this.isEditMode ? 'Modifié' : 'Ajouté',
@@ -178,10 +184,39 @@ export class ServiceListComponent implements OnInit {
                     life: 3000
                 });
             }
-        });
-    }
+        });*/
 
-    deleteService(service: any) {
+        // ✅ Message différent selon ajout ou modification
+        if (this.isEditMode) {
+            this.messageService.add({
+                severity: 'success',
+                summary: '✅ Service modifié',
+                detail: `Le service "${this.formService.name}" a été mis à jour avec succès.`,
+                life: 4000
+            });
+        } else {
+            this.messageService.add({
+                severity: 'success',
+                summary: '✅ Service ajouté',
+                detail: `Le service "${this.formService.name}" a été ajouté avec succès.`,
+                life: 4000
+            });
+        }
+    },
+    error: (err) => {
+        // ✅ Message erreur
+        this.messageService.add({
+            severity: 'error',
+            summary: '❌ Erreur',
+            detail: err?.error?.message || 'Une erreur est survenue. Veuillez réessayer.',
+        life: 5000
+    });
+}
+});
+}
+
+
+    /*deleteService(service: any) {
         this.confirmationService.confirm({
             message: `Supprimer "${service.name}" ?`,
             header: 'Confirmer',
@@ -199,8 +234,37 @@ export class ServiceListComponent implements OnInit {
                     });
             }
         });
+    }*/
+    deleteService(service: any) {
+        this.confirmationService.confirm({
+            message: `Êtes-vous sûr de vouloir supprimer "${service.name}" ?`,
+            header: 'Confirmer la suppression',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {
+                this.apiService.deleteService(service.id).subscribe({
+                    next: () => {
+                        this.loadServices();
+                        // ✅ Message succès suppression
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: '🗑️ Service supprimé',
+                            detail: `Le service "${service.name}" a été supprimé avec succès.`,
+                            life: 4000
+                        });
+                    },
+                    error: () => {
+                        // ✅ Message erreur suppression
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: '❌ Erreur',
+                            detail: 'Erreur lors de la suppression du service.',
+                            life: 5000
+                        });
+                    }
+                });
+            }
+        });
     }
-
     deleteSelectedServices() {
         this.confirmationService.confirm({
             message: `Supprimer ${this.selectedServices.length} services ?`,
