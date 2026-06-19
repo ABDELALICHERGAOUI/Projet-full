@@ -11,4 +11,5 @@ public interface ClientServiceRepository extends JpaRepository<ClientService, Lo
             "JOIN FETCH cs.client " +
             "JOIN FETCH cs.service")
     List<ClientService> findAllWithDetails();
+
 }

@@ -14,8 +14,27 @@
                       (onClick)="deleteSelectedServices()" />
         </ng-template>
         <ng-template #end>
-            <p-button label="Exporter" icon="pi pi-upload"
-                      severity="secondary" (onClick)="exportCSV()" />
+            <!-- Bouton Import CSV -->
+            <p-button label="Importer CSV"
+                      icon="pi pi-download"
+                      severity="secondary"
+                      [outlined]="true"
+                      class="mr-2"
+                      (onClick)="triggerImport()" />
+
+            <!-- Input file caché -->
+            <input #csvInput
+                   type="file"
+                   accept=".csv"
+                   style="display:none"
+                   (change)="onFileSelected($event)" />
+
+            <!-- Bouton Export existant -->
+            <p-button label="Exporter CSV"
+                      icon="pi pi-upload"
+                      severity="secondary"
+                      (onClick)="exportCSV()" />
+
         </ng-template>
     </p-toolbar>
 
@@ -325,5 +344,52 @@
                   [text]="true" (onClick)="addDepDialog = false" />
         <p-button label="Ajouter" icon="pi pi-check"
                   (onClick)="handleAddDep()" />
+    </ng-template>
+</p-dialog>
+
+// import
+<!-- ✅ Dialog résultat import CSV -->
+<p-dialog [(visible)]="importResultDialog"
+          header="Résultat de l'import CSV"
+          [style]="{ width: '500px' }"
+          [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-4">
+
+            <!-- Statistiques -->
+            <div class="flex gap-4">
+                <div class="stat-card success">
+                    <span class="stat-number">{{ importResult?.imported }}</span>
+                    <span class="stat-label">Importés</span>
+                </div>
+                <div class="stat-card warning">
+                    <span class="stat-number">{{ importResult?.skipped }}</span>
+                    <span class="stat-label">Ignorés (doublons)</span>
+                </div>
+                <div class="stat-card danger">
+                    <span class="stat-number">{{ importResult?.errors }}</span>
+                    <span class="stat-label">Erreurs</span>
+                </div>
+            </div>
+
+            <!-- Messages détail -->
+            @if (importResult?.errorMessages?.length > 0) {
+                <div class="error-list">
+                    <p class="font-bold mb-2">Détails :</p>
+                    @for (msg of importResult?.errorMessages; track msg) {
+                        <div class="error-item">
+                            <i class="pi pi-info-circle"></i>
+                            {{ msg }}
+                        </div>
+                    }
+                </div>
+            }
+
+        </div>
+    </ng-template>
+    <ng-template #footer>
+        <p-button label="Fermer" icon="pi pi-times"
+                  [text]="true"
+                  (onClick)="importResultDialog = false" />
     </ng-template>
 </p-dialog>

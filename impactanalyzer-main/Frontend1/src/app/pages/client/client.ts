@@ -6,7 +6,6 @@ import { FormsModule } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Network, Options } from 'vis-network';
 import { DataSet } from 'vis-data';
-import { HttpClient } from '@angular/common/http';
 
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -77,11 +76,15 @@ export class ClientComponent implements OnInit {
     private network: any = null;
     @ViewChild('assocGraph', { static: false }) assocGraphContainer!: ElementRef;
 
-    private apiUrl = 'http://localhost:8080';
+    // import
+    @ViewChild('csvInput') csvInput!: ElementRef;
+    importResultDialog = false;
+    importResult: any = null;
+    importLoading = false;
+
 
     constructor(
         private apiService: ApiService,
-        private http: HttpClient,
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
         private cdr: ChangeDetectorRef
@@ -420,4 +423,84 @@ export class ClientComponent implements OnInit {
         };
         return map[tier] || 'info';
     }
+
+
+// ── Méthodes import CSV ───────────────────────────
+
+    triggerImport(): void {
+        this.csvInput.nativeElement.value = '';
+        this.csvInput.nativeElement.click();
+    }
+
+    onFileSelected(event: any): void {
+        const file: File = event.target.files[0];
+        if (!file) return;
+
+        // Validation format côté Angular
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            this.messageService.add({
+                severity: 'error',
+                summary: '❌ Format invalide',
+                detail: 'Veuillez sélectionner un fichier .csv',
+                life: 4000
+            });
+            return;
+        }
+
+        // Envoyer directement le fichier — plus de parseCSV()
+        this.sendImport(file);
+    }
+
+
+    sendImport(file: File): void {
+        this.importLoading = true;
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Import en cours...',
+            detail: `Envoi de "${file.name}" vers le serveur...`,
+            life: 2000
+        });
+
+        this.apiService.importClients(file).subscribe({
+            next: (result) => {
+                this.importLoading = false;
+                this.importResult  = result;
+                this.importResultDialog = true;
+                this.getAllClients();  // recharger la liste
+
+                // Message selon résultat
+                if (result.imported > 0) {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: '✅ Import terminé',
+                        detail: `${result.imported} client(s) importé(s) avec succès.`,
+                        life: 4000
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: '⚠️ Aucun import',
+                        detail: 'Aucun client n\'a été importé. Vérifiez les erreurs.',
+                        life: 5000
+                    });
+                }
+            },
+            error: (err) => {
+                this.importLoading = false;
+                this.messageService.add({
+                    severity: 'error',
+                    summary: '❌ Erreur import',
+                    detail: err?.error?.errorMessages?.[0]
+                        || err?.error?.message
+                        || 'Erreur lors de l\'import.',
+                    life: 5000
+                });
+            }
+        });
+    }
+    /************/
+
+
+
 }

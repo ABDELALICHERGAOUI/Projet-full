@@ -22,8 +22,6 @@ import { TagModule } from 'primeng/tag';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DividerModule } from 'primeng/divider';
 import { TooltipModule } from 'primeng/tooltip';
-import { AuthService } from '@/app/services/auth';
-import { Router } from '@angular/router';
 
 
 @Component({
@@ -76,6 +74,10 @@ export class ServiceListComponent implements OnInit {
     @ViewChild('depGraph', { static: false })
     depGraphContainer!: ElementRef;
 
+    @ViewChild('csvInput') csvInput!: ElementRef;
+    importResultDialog = false;
+    importResult: any  = null;
+    importLoading      = false;
     // Options selects
     tierOptions = [
         { label: '🔴 CRITICAL', value: 'CRITICAL' },
@@ -101,10 +103,7 @@ export class ServiceListComponent implements OnInit {
     // Services disponibles pour le select (sans le service courant)
     availableServices: any[] = [];
 
-    private apiUrl = 'http://localhost:8080';
-
     constructor(
-        private http: HttpClient,
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
         private cdr: ChangeDetectorRef,
@@ -126,7 +125,8 @@ export class ServiceListComponent implements OnInit {
 
     // ── CRUD Services ─────────────────────────────────
     loadServices(): void {
-        this.http.get<any[]>(`${this.apiUrl}/services`).subscribe({
+        this.apiService.getServices().subscribe({
+            //this.http.get<any[]>(`${this.apiUrl}/services`).subscribe({
             next: (data) => {
                 this.services = data;
                 this.loadAllDependencyCounts();
@@ -163,29 +163,17 @@ export class ServiceListComponent implements OnInit {
         this.submitted = false;
     }
 
-    handleSubmit() {
+    /*handleSubmit() {
         this.submitted = true;
         if (!this.formService.name || !this.formService.description) return;
-
         const url = this.isEditMode
             ? `${this.apiUrl}/services/${this.selectedServiceId}`
             : `${this.apiUrl}/services`;
         const method = this.isEditMode ? 'put' : 'post';
-
         this.http[method](url, this.formService).subscribe({
             next: () => {
                 this.closeServiceModal();
                 this.loadServices();
-                /*
-                this.messageService.add({
-                    severity: 'success',
-                    summary: this.isEditMode ? 'Modifié' : 'Ajouté',
-                    detail: `Service ${this.isEditMode ? 'mis à jour' : 'ajouté'}`,
-                    life: 3000
-                });
-            }
-        });*/
-
         // ✅ Message différent selon ajout ou modification
         if (this.isEditMode) {
             this.messageService.add({
@@ -213,28 +201,58 @@ export class ServiceListComponent implements OnInit {
     });
 }
 });
-}
+}*/
+    handleSubmit() {
+        this.submitted = true;
+        if (!this.formService.name || !this.formService.description) return;
 
+        // ✅ Convertir sla en string pour le backend (ServiceEntity.sla = String)
+        const payload = {
+            ...this.formService,
+            sla: this.formService.sla != null
+                ? this.formService.sla.toString()
+                : null
+        };
 
-    /*deleteService(service: any) {
-        this.confirmationService.confirm({
-            message: `Supprimer "${service.name}" ?`,
-            header: 'Confirmer',
-            icon: 'pi pi-exclamation-triangle',
-            accept: () => {
-                this.http.delete(`${this.apiUrl}/services/${service.id}`)
-                    .subscribe({
-                        next: () => {
-                            this.loadServices();
-                            this.messageService.add({
-                                severity: 'success', summary: 'Supprimé',
-                                detail: 'Service supprimé', life: 3000
-                            });
-                        }
+        // ✅ ApiService au lieu de HttpClient direct
+        const request = this.isEditMode
+            ? this.apiService.updateService(this.selectedServiceId!, payload)
+            : this.apiService.createService(payload);
+
+        request.subscribe({
+            next: () => {
+                this.closeServiceModal();
+                this.loadServices();
+
+                // ✅ Message différent selon ajout ou modification
+                if (this.isEditMode) {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: '✅ Service modifié',
+                        detail: `Le service "${this.formService.name}" a été mis à jour avec succès.`,
+                        life: 4000
                     });
+                } else {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: '✅ Service ajouté',
+                        detail: `Le service "${this.formService.name}" a été ajouté avec succès.`,
+                        life: 4000
+                    });
+                }
+            },
+            error: (err) => {
+                // ✅ Message erreur
+                this.messageService.add({
+                    severity: 'error',
+                    summary: '❌ Erreur',
+                    detail: err?.error?.message
+                        || 'Une erreur est survenue. Veuillez réessayer.',
+                    life: 5000
+                });
             }
         });
-    }*/
+    }
     deleteService(service: any) {
         this.confirmationService.confirm({
             message: `Êtes-vous sûr de vouloir supprimer "${service.name}" ?`,
@@ -273,8 +291,7 @@ export class ServiceListComponent implements OnInit {
             accept: () => {
                 Promise.all(
                     this.selectedServices.map(s =>
-                        this.http.delete(`${this.apiUrl}/services/${s.id}`)
-                            .toPromise()
+                        this.apiService.deleteService(s.id).toPromise()  // ✅ ApiService
                     )
                 ).then(() => {
                     this.selectedServices = [];
@@ -315,8 +332,7 @@ export class ServiceListComponent implements OnInit {
     }
 
     loadDependencies(serviceId: number) {
-        this.http.get<any[]>(`${this.apiUrl}/dependencies`)
-            .subscribe({
+        this.apiService.getDependencies().subscribe({
                 next: (data) => {
                     // Filtrer seulement les dépendances de ce service
                     this.dependencies = data.filter(
@@ -330,7 +346,7 @@ export class ServiceListComponent implements OnInit {
     }
 //  Charger le count de toutes les dépendances
     loadAllDependencyCounts(): void {
-        this.http.get<any[]>(`${this.apiUrl}/dependencies`).subscribe({
+        this.apiService.getDependencies().subscribe({
             next: (data) => {
                 // Compter les dépendances par service
                 this.depCountMap = {};
@@ -439,7 +455,7 @@ export class ServiceListComponent implements OnInit {
             dependencyType: this.formDep.dependencyType
         };
 
-        this.http.post(`${this.apiUrl}/dependencies`, body).subscribe({
+        this.apiService.createDependency(body).subscribe({
             next: () => {
                 this.addDepDialog = false;
                 this.loadDependencies(this.currentService.id);
@@ -462,9 +478,8 @@ export class ServiceListComponent implements OnInit {
             header: 'Confirmer',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                this.http.delete(`${this.apiUrl}/dependencies/${dep.id}`)
-                    .subscribe({
-                        next: () => {
+                this.apiService.deleteDependency(dep.id).subscribe({
+                    next: () => {
                             this.loadDependencies(this.currentService.id);
                             this.messageService.add({
                                 severity: 'success', summary: 'Supprimée',
@@ -482,5 +497,76 @@ export class ServiceListComponent implements OnInit {
     }
     closeModal() {
         this.closeServiceModal();
+    }
+
+    // ── Import CSV ─────────────────────────────────────
+
+    triggerImport(): void {
+        this.csvInput.nativeElement.value = '';
+        this.csvInput.nativeElement.click();
+    }
+
+    onFileSelected(event: any): void {
+        const file: File = event.target.files[0];
+        if (!file) return;
+
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            this.messageService.add({
+                severity: 'error',
+                summary: '❌ Format invalide',
+                detail: 'Veuillez sélectionner un fichier .csv',
+                life: 4000
+            });
+            return;
+        }
+
+        this.sendImport(file);
+    }
+
+    sendImport(file: File): void {
+        this.importLoading = true;
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Import en cours...',
+            detail: `Envoi de "${file.name}" vers le serveur...`,
+            life: 2000
+        });
+
+        this.apiService.importServices(file).subscribe({
+            next: (result) => {
+                this.importLoading = false;
+                this.importResult  = result;
+                this.importResultDialog = true;
+                this.loadServices();
+
+                if (result.imported > 0) {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: '✅ Import terminé',
+                        detail: `${result.imported} service(s) importé(s) avec succès.`,
+                        life: 4000
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: '⚠️ Aucun import',
+                        detail: 'Aucun service importé. Vérifiez les erreurs.',
+                        life: 5000
+                    });
+                }
+            },
+            error: (err) => {
+                this.importLoading = false;
+                this.messageService.add({
+                    severity: 'error',
+                    summary: '❌ Erreur import',
+                    detail: err?.error?.errorMessages?.[0]
+                        || err?.error?.message
+                        || 'Erreur lors de l\'import.',
+                    life: 5000
+                });
+            }
+        });
     }
 }
