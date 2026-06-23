@@ -83,8 +83,7 @@ public class ClientServiceImpl {
      *   name,email,segment,region
      *   BNP Paribas,bnp@bnp.fr,VIP,France
      */
-    public ImportResultDTO importClientsFromCsv(MultipartFile file)
-            throws IOException {
+    public ImportResultDTO importClientsFromCsv(MultipartFile file) {
 
         List<String> errorMessages = new ArrayList<>();
         int imported = 0;
@@ -163,10 +162,10 @@ public class ClientServiceImpl {
                     }
 
                     // ── Extraction des champs ─────────
-                    String name    = getValueSafe(values, idxName);
-                    String email   = getValueSafe(values, idxEmail);
+                    String name = getValueSafe(values, idxName);
+                    String email = getValueSafe(values, idxEmail);
                     String segment = getValueSafe(values, idxSegment);
-                    String region  = getValueSafe(values, idxRegion);
+                    String region = getValueSafe(values, idxRegion);
 
                     // ── Validation champs obligatoires ─
                     if (name.isEmpty()) {
@@ -227,7 +226,11 @@ public class ClientServiceImpl {
 
                 lineNumber++;
             }
-        }
+            } catch (IOException e) {
+                errorMessages.add("Erreur lors de la lecture du fichier : " + e.getMessage());
+                return new ImportResultDTO(0, 1, 0, errorMessages);
+            }
+
 
         return new ImportResultDTO(imported, errors, skipped, errorMessages);
     }

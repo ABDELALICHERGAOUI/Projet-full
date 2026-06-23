@@ -3,26 +3,33 @@ package com.example.impactanalyzer.controller;
 import com.example.impactanalyzer.dto.BlastRadiusDTO;
 import com.example.impactanalyzer.dto.ServiceRiskDTO;
 import com.example.impactanalyzer.service.ReportService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/reports")
+@Tag(name = "Rapports", description = "Rapports d'analyse des risques et du blast radius")
+@SecurityRequirement(name = "bearerAuth")
 public class ReportController {
 
-    @Autowired
-    private ReportService reportService;
+    private final ReportService reportService;
 
-    // GET /reports/top-critical-services
+    public ReportController(ReportService reportService) {
+        this.reportService = reportService;
+    }
+
     @GetMapping("/top-critical-services")
+    @Operation(summary = "Afficher les services les plus critiques")
     public List<ServiceRiskDTO> getTopCriticalServices() {
         return reportService.getTopCriticalServices();
     }
 
-    // GET /reports/blast-radius
     @GetMapping("/blast-radius")
+    @Operation(summary = "Afficher le rapport du blast radius des services")
     public List<BlastRadiusDTO> getBlastRadiusReport() {
         return reportService.getBlastRadiusReport();
     }

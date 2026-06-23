@@ -77,8 +77,7 @@ public class ServiceServiceImpl {
 
     // ── Import CSV ────────────────────────────────────
 
-    public ImportResultDTO importServicesFromCsv(MultipartFile file)
-            throws IOException {
+    public ImportResultDTO importServicesFromCsv(MultipartFile file) {
 
         List<String> errorMessages = new ArrayList<>();
         int imported = 0;
@@ -235,6 +234,9 @@ public class ServiceServiceImpl {
 
                 lineNumber++;
             }
+        } catch (IOException e) {
+            errorMessages.add("Erreur lors de la lecture du fichier : " + e.getMessage());
+            return new ImportResultDTO(0, 1, 0, errorMessages);
         }
 
         return new ImportResultDTO(imported, errors, skipped, errorMessages);
