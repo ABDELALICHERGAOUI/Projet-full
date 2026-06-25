@@ -37,7 +37,7 @@ import { Router } from '@angular/router';
 
                     <div class="topbar-logo-text">
                         <span class="topbar-logo-title">SDIA</span>
-                        <span class="topbar-logo-subtitle">Impact Analyzer</span>
+                        <span class="topbar-logo-subtitle">Smart Dependency Impact Analyzer </span>
                     </div>
                 </a>
             </div>

@@ -2,42 +2,42 @@
 <p-confirmDialog />
 
 <div class="card">
-    <!-- Toolbar -->
-    <p-toolbar styleClass="mb-6">
-        <ng-template #start>
-            <p-button label="Nouveau Service" icon="pi pi-plus"
-                      severity="secondary" class="mr-2"
-                      (onClick)="openAddModal()" />
-            <p-button label="Supprimer" icon="pi pi-trash"
-                      severity="danger" outlined
-                      [disabled]="!selectedServices || !selectedServices.length"
-                      (onClick)="deleteSelectedServices()" />
-        </ng-template>
-        <ng-template #end>
-            <!-- Bouton Import CSV -->
-            <p-button label="Importer CSV"
-                      icon="pi pi-download"
-                      severity="secondary"
-                      [outlined]="true"
-                      class="mr-2"
-                      (onClick)="triggerImport()" />
+    <!-- Header page Services -->
+    <div class="services-header">
+        <div class="services-title-block">
+            <div class="services-title-icon">
+                <i class="pi pi-cog"></i>
+            </div>
 
-            <!-- Input file caché -->
-            <input #csvInput
-                   type="file"
-                   accept=".csv"
-                   style="display:none"
-                   (change)="onFileSelected($event)" />
+            <div>
+                <h2>Gestion des Services</h2>
+                <p>Administration des services, de leurs statuts et de leurs dépendances.</p>
+            </div>
+        </div>
 
-            <!-- Bouton Export existant -->
-            <p-button label="Exporter CSV"
-                      icon="pi pi-upload"
-                      severity="secondary"
-                      (onClick)="exportCSV()" />
+        <div class="services-main-actions">
+            <p-button
+                label="Nouveau Service"
+                icon="pi pi-plus"
+                class="new-service-btn"
+                (onClick)="openAddModal()" />
 
-        </ng-template>
-    </p-toolbar>
+            <p-button
+                label="Supprimer"
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                [disabled]="!selectedServices || !selectedServices.length"
+                (onClick)="deleteSelectedServices()" />
+        </div>
+    </div>
 
+    <!-- Input file caché pour import CSV -->
+    <input #csvInput
+           type="file"
+           accept=".csv"
+           style="display:none"
+           (change)="onFileSelected($event)" />
     <!-- Table -->
     <p-table #dt
              [value]="services"
@@ -53,20 +53,42 @@
              dataKey="id">
 
         <ng-template #caption>
-            <div class="flex items-center justify-between">
-                <h5 class="m-0">Gestion des Services</h5>
-                <p-iconfield>
-                    <p-inputicon styleClass="pi pi-search" />
-                    <input pInputText type="text"
-                           [(ngModel)]="searchValue"
-                           (input)="dt.filterGlobal(searchValue, 'contains')"
-                           placeholder="Rechercher..." />
-                </p-iconfield>
+            <div class="table-caption">
+                <div>
+                    <h3 class="table-title">Liste des services</h3>
+                    <p class="table-subtitle">Rechercher, importer ou exporter les services.</p>
+                </div>
+
+                <div class="table-actions">
+                    <p-iconfield class="search-field">
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input
+                            pInputText
+                            type="text"
+                            [(ngModel)]="searchValue"
+                            (input)="dt.filterGlobal(searchValue, 'contains')"
+                            placeholder="Rechercher..." />
+                    </p-iconfield>
+
+                    <p-button
+                        label="Importer CSV"
+                        icon="pi pi-upload"
+                        severity="secondary"
+                        [outlined]="true"
+                        (onClick)="triggerImport()" />
+
+                    <p-button
+                        label="Exporter CSV"
+                        icon="pi pi-download"
+                        severity="secondary"
+                        [outlined]="true"
+                        (onClick)="exportCSV()" />
+                </div>
             </div>
         </ng-template>
 
         <ng-template #header>
-            <tr>
+            <tr >
                 <th style="width: 3rem"><p-tableHeaderCheckbox /></th>
                 <th pSortableColumn="name">Nom <p-sortIcon field="name"/></th>
                 <th pSortableColumn="description">Description <p-sortIcon field="description"/></th>
@@ -207,15 +229,23 @@
     [(visible)]="depDialog"
     [header]="'Dépendances — ' + (currentService?.name || '')"
     [modal]="true"
-    [style]="{ width: '750px' }"
+    styleClass="dep-dialog"
+    [style]="{ width: '980px', maxWidth: '95vw' }"
     [draggable]="false"
     (onHide)="closeDepDialog()">
 
     <ng-template #content>
-        <div class="flex justify-content-end mb-4">
-            <p-button label="Ajouter une dépendance"
-                      icon="pi pi-plus" severity="secondary"
-                      (onClick)="openAddDepDialog()" />
+        <div class="dep-dialog-toolbar">
+            <div class="dep-dialog-hint">
+                <i class="pi pi-info-circle"></i>
+                <span>Visualisez les services dont dépend ce service.</span>
+            </div>
+
+            <p-button
+                label="Ajouter une dépendance"
+                icon="pi pi-plus"
+                class="add-dependency-btn"
+                (onClick)="openAddDepDialog()" />
         </div>
 
         <div class="dep-graph-container" #depGraph>
@@ -347,7 +377,6 @@
     </ng-template>
 </p-dialog>
 
-// import
 <!-- ✅ Dialog résultat import CSV -->
 <p-dialog [(visible)]="importResultDialog"
           header="Résultat de l'import CSV"
@@ -358,15 +387,15 @@
 
             <!-- Statistiques -->
             <div class="flex gap-4">
-                <div class="stat-card success">
+                <div class="import-stat-card  success">
                     <span class="stat-number">{{ importResult?.imported }}</span>
                     <span class="stat-label">Importés</span>
                 </div>
-                <div class="stat-card warning">
+                <div class="import-stat-card  warning">
                     <span class="stat-number">{{ importResult?.skipped }}</span>
                     <span class="stat-label">Ignorés (doublons)</span>
                 </div>
-                <div class="stat-card danger">
+                <div class="import-stat-card  danger">
                     <span class="stat-number">{{ importResult?.errors }}</span>
                     <span class="stat-label">Erreurs</span>
                 </div>

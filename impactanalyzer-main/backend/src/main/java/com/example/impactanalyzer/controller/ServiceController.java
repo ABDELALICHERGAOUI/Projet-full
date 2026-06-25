@@ -14,7 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.example.impactanalyzer.dto.ServiceDeleteInfoDTO;
 import java.util.List;
 import java.util.*;
 
@@ -52,15 +52,23 @@ public class ServiceController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteService(@PathVariable Long id) {
-        serviceService.deleteService(id);
+    public ResponseEntity<Void> deleteService(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean force
+    ) {
+        serviceService.deleteService(id, force);
+        return ResponseEntity.noContent().build();
     }
-
     @PatchMapping("/{id}")
     public void updatestatus(@PathVariable Long id, @RequestBody ServiceStatus status) {
         serviceService.updateStatus(id , status);
     }
+
+    @GetMapping("/{id}/delete-info")
+    public ServiceDeleteInfoDTO getDeleteInfo(@PathVariable Long id) {
+        return serviceService.getServiceDeleteInfo(id);
+    }
+
 
     @PostMapping(
             value = "/import/csv",

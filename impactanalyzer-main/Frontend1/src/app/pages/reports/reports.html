@@ -1,28 +1,26 @@
 <!-- Header -->
-<div class="card mb-4">
-    <div class="flex align-items-center gap-3">
+<div class="card reports-header">
+    <div class="reports-title-block">
         <div class="report-header-icon">
-            <i class="pi pi-chart-bar"
-               style="font-size:1.8rem; color:white"></i>
+            <i class="pi pi-chart-bar"></i>
         </div>
+
         <div>
-            <h2 class="m-0 text-2xl font-bold">Rapports & Analyses</h2>
-            <p class="m-0 text-color-secondary mt-1">
-                Analyse des risques et blast radius du système
-            </p>
+            <h2>Rapports & Analyses</h2>
+            <p>Analyse des risques et du blast radius du système</p>
         </div>
     </div>
 </div>
 
 <!-- Tabs -->
-<p-tabs value="0">
+<p-tabs value="0" styleClass="reports-tabs">
 
-    <!-- ═══ TAB 1 : Top Services Critiques ═══ -->
     <p-tablist>
         <p-tab value="0">
             <i class="pi pi-exclamation-triangle mr-2"></i>
             Top Services Critiques
         </p-tab>
+
         <p-tab value="1">
             <i class="pi pi-bolt mr-2"></i>
             Blast Radius
@@ -31,247 +29,567 @@
 
     <p-tabpanels>
 
-        <!-- Panel 1 -->
+        <!-- ═════════════════ TAB 1 : TOP SERVICES CRITIQUES ═════════════════ -->
         <p-tabpanel value="0">
-            <div class="flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h3 class="m-0">Classement des services par risque</h3>
-                    <p class="text-color-secondary text-sm mt-1">
-                        Score calculé selon le tier, les dépendances et le statut
-                    </p>
+
+            <!-- Cartes de synthèse -->
+            <div class="summary-grid">
+
+                <div class="summary-card danger">
+                    <div class="summary-icon">
+                        <i class="pi pi-shield"></i>
+                    </div>
+
+                    <div>
+                        <div class="summary-label">Service le plus risqué</div>
+
+                        @if (mostRiskyService) {
+                            <div class="summary-value">
+                                {{ mostRiskyService.name }}
+                            </div>
+                            <div class="summary-sub">
+                                Score : {{ mostRiskyService.riskScore | number:'1.0-1' }}%
+                            </div>
+                        } @else {
+                            <div class="summary-value">N/A</div>
+                            <div class="summary-sub">Aucune donnée</div>
+                        }
+                    </div>
                 </div>
-                <p-button label="Exporter CSV" icon="pi pi-download"
-                          severity="secondary" [outlined]="true"
-                          (onClick)="exportCSV('risk')" />
+
+                <div class="summary-card warning">
+                    <div class="summary-icon">
+                        <i class="pi pi-exclamation-triangle"></i>
+                    </div>
+
+                    <div>
+                        <div class="summary-label">Services critiques</div>
+                        <div class="summary-value">{{ criticalRiskCount }}</div>
+                        <div class="summary-sub">Niveau CRITICAL</div>
+                    </div>
+                </div>
+
+                <div class="summary-card orange">
+                    <div class="summary-icon">
+                        <i class="pi pi-arrow-up"></i>
+                    </div>
+
+                    <div>
+                        <div class="summary-label">Services à risque élevé</div>
+                        <div class="summary-value">{{ highRiskCount }}</div>
+                        <div class="summary-sub">Niveau HIGH</div>
+                    </div>
+                </div>
+
+                <div class="summary-card info">
+                    <div class="summary-icon">
+                        <i class="pi pi-chart-line"></i>
+                    </div>
+
+                    <div>
+                        <div class="summary-label">Score moyen</div>
+                        <div class="summary-value">
+                            {{ averageRiskScore | number:'1.0-1' }}%
+                        </div>
+                        <div class="summary-sub">Tous services analysés</div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Graphique -->
-            <div class="card mb-4" style="height: 320px">
-                @if (!loadingRisk && riskChartData) {
-                    <p-chart type="bar"
-                             [data]="riskChartData"
-                             [options]="riskChartOptions"
-                             height="300" />
-                }
+            <!-- Bloc graphique + explication -->
+            <div class="analysis-layout">
+
+                <div class="card analysis-chart-card">
+                    <div class="section-header">
+                        <div>
+                            <h3>Classement des services par risque</h3>
+                            <p>
+                                Score calculé selon le tier, les dépendances entrantes et le statut.
+                            </p>
+                        </div>
+
+                        <p-button
+                            label="Exporter CSV"
+                            icon="pi pi-download"
+                            severity="secondary"
+                            [outlined]="true"
+                            (onClick)="exportCSV('risk')" />
+                    </div>
+
+                    <div class="chart-box">
+                        @if (!loadingRisk && riskChartData) {
+                            <p-chart
+                                type="bar"
+                                [data]="riskChartData"
+                                [options]="riskChartOptions"
+                                height="300" />
+                        } @else {
+                            <div class="chart-loading">
+                                <i class="pi pi-spin pi-spinner"></i>
+                                Chargement du graphique...
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card quick-reading-card">
+                    <h4>
+                        <i class="pi pi-lightbulb"></i>
+                        Lecture rapide
+                    </h4>
+
+                    @if (mostRiskyService) {
+                        <p>
+                            <strong>{{ mostRiskyService.name }}</strong>
+                            présente le score de risque le plus élevé
+                            avec
+                            <strong>{{ mostRiskyService.riskScore | number:'1.0-1' }}%</strong>.
+                        </p>
+                    }
+
+                    <ul>
+                        <li>
+                            <span class="dot danger"></span>
+                            {{ criticalRiskCount }} service(s) en niveau critique.
+                        </li>
+                        <li>
+                            <span class="dot warning"></span>
+                            {{ highRiskCount }} service(s) en niveau élevé.
+                        </li>
+                        <li>
+                            <span class="dot danger"></span>
+                            {{ downRiskCount }} service(s) actuellement DOWN.
+                        </li>
+                    </ul>
+
+                    <div class="method-box">
+                        <div class="method-title">
+                            <i class="pi pi-info-circle"></i>
+                            Méthode de calcul
+                        </div>
+                        <p>
+                            Le score de risque combine le tier du service,
+                            le nombre de dépendances entrantes et le statut opérationnel.
+                        </p>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Tableau -->
-            <p-table
-                [value]="topCriticalServices"
-                [loading]="loadingRisk"
-                [paginator]="true"
-                [rows]="10"
-                [rowsPerPageOptions]="[10, 20, 50]"
-                [globalFilterFields]="['name','tier','riskLevel','ownerTeam']"
-                [tableStyle]="{'min-width':'60rem'}"
-                #dtRisk>
+            <div class="card report-table-card">
 
-                <ng-template #caption>
-                    <div class="flex justify-content-end">
-                        <p-iconfield>
-                            <p-inputicon styleClass="pi pi-search" />
-                            <input pInputText type="text"
-                                   [(ngModel)]="searchRisk"
-                                   (input)="dtRisk.filterGlobal(searchRisk,'contains')"
-                                   placeholder="Rechercher..." />
-                        </p-iconfield>
-                    </div>
-                </ng-template>
+                <div class="table-toolbar">
+                    <p-iconfield class="search-field">
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input
+                            pInputText
+                            type="text"
+                            [(ngModel)]="searchRisk"
+                            (input)="dtRisk.filterGlobal(searchRisk, 'contains')"
+                            placeholder="Rechercher un service..." />
+                    </p-iconfield>
+                </div>
 
-                <ng-template #header>
-                    <tr>
-                        <th style="width:3rem">#</th>
-                        <th pSortableColumn="name">
-                            Service <p-sortIcon field="name"/>
-                        </th>
-                        <th pSortableColumn="tier">
-                            Tier <p-sortIcon field="tier"/>
-                        </th>
-                        <th>Status</th>
-                        <th pSortableColumn="dependencyCount">
-                            Dép. entrantes <p-sortIcon field="dependencyCount"/>
-                        </th>
-                        <th pSortableColumn="dependsOnCount">
-                            Dép. sortantes <p-sortIcon field="dependsOnCount"/>
-                        </th>
-                        <th pSortableColumn="riskScore">
-                            Score risque <p-sortIcon field="riskScore"/>
-                        </th>
-                        <th>Niveau</th>
-                        <th>Action</th>
-                    </tr>
-                </ng-template>
+                <p-table
+                    [value]="topCriticalServices"
+                    [loading]="loadingRisk"
+                    [paginator]="true"
+                    [rows]="10"
+                    [rowsPerPageOptions]="[10, 20, 50]"
+                    [globalFilterFields]="['name','tier','riskLevel','ownerTeam','status']"
+                    [tableStyle]="{'min-width':'72rem'}"
+                    #dtRisk>
 
-                <ng-template #body let-svc let-i="rowIndex">
-                    <tr>
-                        <td>
-                            <span class="rank-badge"
-                                  [class.rank-top]="i < 3">
-                                {{ i + 1 }}
-                            </span>
-                        </td>
-                        <td class="font-semibold">{{ svc.name }}</td>
-                        <td>
-                            <p-tag [value]="svc.tier"
-                                   [severity]="getTierSeverity(svc.tier)" />
-                        </td>
-                        <td>
-                            <p-tag [value]="svc.status"
-                                   [severity]="svc.status === 'UP' ? 'success' : 'danger'" />
-                        </td>
-                        <td class="text-center">
-                            <span class="dep-count">{{ svc.dependencyCount }}</span>
-                        </td>
-                        <td class="text-center">{{ svc.dependsOnCount }}</td>
-                        <td>
-                            <div class="score-bar-container">
-                                <div class="score-bar"
-                                     [style.width]="svc.riskScore + '%'"
-                                     [style.background]="getRiskColor(svc.riskLevel)">
-                                </div>
-                                <span class="score-text">
-                                    {{ svc.riskScore | number:'1.0-1' }}%
+                    <ng-template #header>
+                        <tr>
+                            <th style="width:3rem">#</th>
+
+                            <th pSortableColumn="name">
+                                Service <p-sortIcon field="name" />
+                            </th>
+
+                            <th pSortableColumn="tier">
+                                Tier <p-sortIcon field="tier" />
+                            </th>
+
+                            <th pSortableColumn="status">
+                                Status <p-sortIcon field="status" />
+                            </th>
+
+                            <th pSortableColumn="dependencyCount">
+                                Dép. entrantes <p-sortIcon field="dependencyCount" />
+                            </th>
+
+                            <th pSortableColumn="dependsOnCount">
+                                Dép. sortantes <p-sortIcon field="dependsOnCount" />
+                            </th>
+
+                            <th pSortableColumn="riskScore">
+                                Score risque <p-sortIcon field="riskScore" />
+                            </th>
+
+                            <th>Niveau</th>
+                            <th>Action</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #body let-svc let-i="rowIndex">
+                        <tr>
+                            <td>
+                                <span class="rank-badge" [class.rank-top]="i < 3">
+                                    {{ i + 1 }}
                                 </span>
-                            </div>
-                        </td>
-                        <td>
-                            <p-tag [value]="svc.riskLevel"
-                                   [severity]="getRiskTagSeverity(svc.riskLevel)" />
-                        </td>
-                        <td>
-                            <p-button icon="pi pi-bolt"
-                                      severity="warn" [rounded]="true"
-                                      [outlined]="true" size="small"
-                                      pTooltip="Simuler l'impact"
-                                      (onClick)="simulateImpact(svc.id)" />
-                        </td>
-                    </tr>
-                </ng-template>
-            </p-table>
+                            </td>
+
+                            <td class="service-name">
+                                {{ svc.name }}
+                            </td>
+
+                            <td>
+                                <p-tag
+                                    [value]="svc.tier"
+                                    [severity]="getTierSeverity(svc.tier)" />
+                            </td>
+
+                            <td>
+                                <p-tag
+                                    [value]="svc.status"
+                                    [severity]="getStatusSeverity(svc.status)" />
+                            </td>
+
+                            <td class="text-center">
+                                <span class="dep-count">
+                                    {{ svc.dependencyCount }}
+                                </span>
+                            </td>
+
+                            <td class="text-center">
+                                {{ svc.dependsOnCount }}
+                            </td>
+
+                            <td>
+                                <div class="score-bar-container">
+                                    <div
+                                        class="score-bar"
+                                        [style.width]="svc.riskScore + '%'"
+                                        [style.background]="getRiskColor(svc.riskLevel)">
+                                    </div>
+
+                                    <span class="score-text">
+                                        {{ svc.riskScore | number:'1.0-1' }}%
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <p-tag
+                                    [value]="svc.riskLevel"
+                                    [severity]="getRiskTagSeverity(svc.riskLevel)" />
+                            </td>
+
+                            <td>
+                                <p-button
+                                    icon="pi pi-bolt"
+                                    severity="warn"
+                                    [rounded]="true"
+                                    [outlined]="true"
+                                    size="small"
+                                    pTooltip="Simuler l'impact"
+                                    (onClick)="simulateImpact(svc.id)" />
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                </p-table>
+            </div>
+
         </p-tabpanel>
 
-        <!-- Panel 2 -->
+        <!-- ═════════════════ TAB 2 : BLAST RADIUS ═════════════════ -->
         <p-tabpanel value="1">
-            <div class="flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h3 class="m-0">Blast Radius par service</h3>
-                    <p class="text-color-secondary text-sm mt-1">
-                        Si ce service tombe, combien de services et clients sont impactés
-                    </p>
+
+            <!-- Cartes de synthèse -->
+            <div class="summary-grid">
+
+                <div class="summary-card danger">
+                    <div class="summary-icon">
+                        <i class="pi pi-bullseye"></i>
+                    </div>
+
+                    <div>
+                        <div class="summary-label">Blast Radius Max</div>
+
+                        @if (maxBlastRadiusService) {
+                            <div class="summary-value">
+                                {{ maxBlastRadiusService.blastRadiusScore | number:'1.0-1' }}%
+                            </div>
+                            <div class="summary-sub">
+                                {{ maxBlastRadiusService.serviceName }}
+                            </div>
+                        } @else {
+                            <div class="summary-value">0%</div>
+                            <div class="summary-sub">Aucune donnée</div>
+                        }
+                    </div>
                 </div>
-                <p-button label="Exporter CSV" icon="pi pi-download"
-                          severity="secondary" [outlined]="true"
-                          (onClick)="exportCSV('blast')" />
+
+                <div class="summary-card warning">
+                    <div class="summary-icon">
+                        <i class="pi pi-sitemap"></i>
+                    </div>
+
+                    <div>
+                        <div class="summary-label">Services impactés max</div>
+                        <div class="summary-value">
+                            {{ maxImpactedServices }}
+                        </div>
+                        <div class="summary-sub">Pour un seul service en panne</div>
+                    </div>
+                </div>
+
+                <div class="summary-card purple">
+                    <div class="summary-icon">
+                        <i class="pi pi-users"></i>
+                    </div>
+
+                    <div>
+                        <div class="summary-label">Clients impactés max</div>
+                        <div class="summary-value">
+                            {{ maxImpactedClients }}
+                        </div>
+                        <div class="summary-sub">Clients potentiellement affectés</div>
+                    </div>
+                </div>
+
+                <div class="summary-card info">
+                    <div class="summary-icon">
+                        <i class="pi pi-chart-line"></i>
+                    </div>
+
+                    <div>
+                        <div class="summary-label">Blast Radius moyen</div>
+                        <div class="summary-value">
+                            {{ averageBlastScore | number:'1.0-1' }}%
+                        </div>
+                        <div class="summary-sub">Tous services analysés</div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Graphique -->
-            <div class="card mb-4" style="height: 320px">
-                @if (!loadingBlast && blastChartData) {
-                    <p-chart type="bar"
-                             [data]="blastChartData"
-                             [options]="blastChartOptions"
-                             height="300" />
-                }
+            <!-- Bloc graphique + explication -->
+            <div class="analysis-layout">
+
+                <div class="card analysis-chart-card">
+                    <div class="section-header">
+                        <div>
+                            <h3>Blast Radius par service</h3>
+                            <p>
+                                Pour chaque service, le rapport mesure combien de services
+                                et clients seraient impactés en cas de panne.
+                            </p>
+                        </div>
+
+                        <p-button
+                            label="Exporter CSV"
+                            icon="pi pi-download"
+                            severity="secondary"
+                            [outlined]="true"
+                            (onClick)="exportCSV('blast')" />
+                    </div>
+
+                    <div class="chart-box">
+                        @if (!loadingBlast && blastChartData) {
+                            <p-chart
+                                type="bar"
+                                [data]="blastChartData"
+                                [options]="blastChartOptions"
+                                height="300" />
+                        } @else {
+                            <div class="chart-loading">
+                                <i class="pi pi-spin pi-spinner"></i>
+                                Chargement du graphique...
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card quick-reading-card">
+                    <h4>
+                        <i class="pi pi-lightbulb"></i>
+                        Lecture rapide
+                    </h4>
+
+                    @if (maxBlastRadiusService) {
+                        <p>
+                            <strong>{{ maxBlastRadiusService.serviceName }}</strong>
+                            possède le blast radius le plus élevé :
+                            <strong>{{ maxBlastRadiusService.blastRadiusScore | number:'1.0-1' }}%</strong>.
+                        </p>
+                    }
+
+                    <ul>
+                        <li>
+                            <span class="dot danger"></span>
+                            {{ highBlastCount }} service(s) avec sévérité HIGH ou CRITICAL.
+                        </li>
+                        <li>
+                            <span class="dot warning"></span>
+                            Maximum services impactés : {{ maxImpactedServices }}.
+                        </li>
+                        <li>
+                            <span class="dot purple"></span>
+                            Maximum clients impactés : {{ maxImpactedClients }}.
+                        </li>
+                    </ul>
+
+                    <div class="method-box">
+                        <div class="method-title">
+                            <i class="pi pi-info-circle"></i>
+                            Méthode de calcul
+                        </div>
+                        <p>
+                            Le blast radius représente le pourcentage de services impactables
+                            touchés par la panne d’un service.
+                        </p>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Tableau -->
-            <p-table
-                [value]="blastRadiusData"
-                [loading]="loadingBlast"
-                [paginator]="true"
-                [rows]="10"
-                [rowsPerPageOptions]="[10, 20, 50]"
-                [globalFilterFields]="['serviceName','tier','severity']"
-                [tableStyle]="{'min-width':'60rem'}"
-                #dtBlast>
+            <div class="card report-table-card">
 
-                <ng-template #caption>
-                    <div class="flex justify-content-end">
-                        <p-iconfield>
-                            <p-inputicon styleClass="pi pi-search" />
-                            <input pInputText type="text"
-                                   [(ngModel)]="searchBlast"
-                                   (input)="dtBlast.filterGlobal(searchBlast,'contains')"
-                                   placeholder="Rechercher..." />
-                        </p-iconfield>
-                    </div>
-                </ng-template>
+                <div class="table-toolbar">
+                    <p-iconfield class="search-field">
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input
+                            pInputText
+                            type="text"
+                            [(ngModel)]="searchBlast"
+                            (input)="dtBlast.filterGlobal(searchBlast, 'contains')"
+                            placeholder="Rechercher un service..." />
+                    </p-iconfield>
+                </div>
 
-                <ng-template #header>
-                    <tr>
-                        <th style="width:3rem">#</th>
-                        <th pSortableColumn="serviceName">
-                            Service <p-sortIcon field="serviceName"/>
-                        </th>
-                        <th>Tier</th>
-                        <th>Status</th>
-                        <th pSortableColumn="impactedServicesCount">
-                            Services impactés
-                            <p-sortIcon field="impactedServicesCount"/>
-                        </th>
-                        <th pSortableColumn="impactedClientsCount">
-                            Clients impactés
-                            <p-sortIcon field="impactedClientsCount"/>
-                        </th>
-                        <th pSortableColumn="blastRadiusScore">
-                            Blast Radius
-                            <p-sortIcon field="blastRadiusScore"/>
-                        </th>
-                        <th>Sévérité</th>
-                        <th>Simuler</th>
-                    </tr>
-                </ng-template>
+                <p-table
+                    [value]="blastRadiusData"
+                    [loading]="loadingBlast"
+                    [paginator]="true"
+                    [rows]="10"
+                    [rowsPerPageOptions]="[10, 20, 50]"
+                    [globalFilterFields]="['serviceName','tier','severity','status']"
+                    [tableStyle]="{'min-width':'72rem'}"
+                    #dtBlast>
 
-                <ng-template #body let-svc let-i="rowIndex">
-                    <tr>
-                        <td>
-                            <span class="rank-badge"
-                                  [class.rank-top]="i < 3">
-                                {{ i + 1 }}
-                            </span>
-                        </td>
-                        <td class="font-semibold">{{ svc.serviceName }}</td>
-                        <td>
-                            <p-tag [value]="svc.tier"
-                                   [severity]="getTierSeverity(svc.tier)" />
-                        </td>
-                        <td>
-                            <p-tag [value]="svc.status"
-                                   [severity]="svc.status === 'UP' ? 'success' : 'danger'" />
-                        </td>
-                        <td class="text-center">
-                            <span class="dep-count">
-                                {{ svc.impactedServicesCount }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            {{ svc.impactedClientsCount }}
-                        </td>
-                        <td>
-                            <div class="score-bar-container">
-                                <div class="score-bar"
-                                     [style.width]="svc.blastRadiusScore + '%'"
-                                     [style.background]="getSeverityColor(svc.severity)">
-                                </div>
-                                <span class="score-text">
-                                    {{ svc.blastRadiusScore | number:'1.0-1' }}%
+                    <ng-template #header>
+                        <tr>
+                            <th style="width:3rem">#</th>
+
+                            <th pSortableColumn="serviceName">
+                                Service <p-sortIcon field="serviceName" />
+                            </th>
+
+                            <th pSortableColumn="tier">
+                                Tier <p-sortIcon field="tier" />
+                            </th>
+
+                            <th pSortableColumn="status">
+                                Status <p-sortIcon field="status" />
+                            </th>
+
+                            <th pSortableColumn="impactedServicesCount">
+                                Services impactés
+                                <p-sortIcon field="impactedServicesCount" />
+                            </th>
+
+                            <th pSortableColumn="impactedClientsCount">
+                                Clients impactés
+                                <p-sortIcon field="impactedClientsCount" />
+                            </th>
+
+                            <th pSortableColumn="blastRadiusScore">
+                                Blast Radius
+                                <p-sortIcon field="blastRadiusScore" />
+                            </th>
+
+                            <th>Sévérité</th>
+                            <th>Simuler</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #body let-svc let-i="rowIndex">
+                        <tr>
+                            <td>
+                                <span class="rank-badge" [class.rank-top]="i < 3">
+                                    {{ i + 1 }}
                                 </span>
-                            </div>
-                        </td>
-                        <td>
-                            <p-tag [value]="svc.severity"
-                                   [severity]="getSeverityTag(svc.severity)" />
-                        </td>
-                        <td>
-                            <p-button icon="pi pi-bolt"
-                                      severity="warn" [rounded]="true"
-                                      [outlined]="true" size="small"
-                                      pTooltip="Simuler l'impact"
-                                      (onClick)="simulateImpact(svc.serviceId)" />
-                        </td>
-                    </tr>
-                </ng-template>
-            </p-table>
+                            </td>
+
+                            <td class="service-name">
+                                {{ svc.serviceName }}
+                            </td>
+
+                            <td>
+                                <p-tag
+                                    [value]="svc.tier"
+                                    [severity]="getTierSeverity(svc.tier)" />
+                            </td>
+
+                            <td>
+                                <p-tag
+                                    [value]="svc.status"
+                                    [severity]="getStatusSeverity(svc.status)" />
+                            </td>
+
+                            <td class="text-center">
+                                <span class="dep-count">
+                                    {{ svc.impactedServicesCount }}
+                                </span>
+                            </td>
+
+                            <td class="text-center">
+                                {{ svc.impactedClientsCount }}
+                            </td>
+
+                            <td>
+                                <div class="score-bar-container">
+                                    <div
+                                        class="score-bar"
+                                        [style.width]="svc.blastRadiusScore + '%'"
+                                        [style.background]="getSeverityColor(svc.severity)">
+                                    </div>
+
+                                    <span class="score-text">
+                                        {{ svc.blastRadiusScore | number:'1.0-1' }}%
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <p-tag
+                                    [value]="svc.severity"
+                                    [severity]="getSeverityTag(svc.severity)" />
+                            </td>
+
+                            <td>
+                                <p-button
+                                    icon="pi pi-bolt"
+                                    severity="warn"
+                                    [rounded]="true"
+                                    [outlined]="true"
+                                    size="small"
+                                    pTooltip="Simuler l'impact"
+                                    (onClick)="simulateImpact(svc.serviceId)" />
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                </p-table>
+            </div>
+
         </p-tabpanel>
 
     </p-tabpanels>

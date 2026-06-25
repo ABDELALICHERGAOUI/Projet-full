@@ -7,6 +7,10 @@ import com.example.impactanalyzer.enums.ServiceTier;
 import com.example.impactanalyzer.repository.ServiceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.impactanalyzer.dto.ServiceDeleteInfoDTO;
+import com.example.impactanalyzer.repository.ClientServiceRepository;
+import com.example.impactanalyzer.repository.DependencyRepository;
+import jakarta.transaction.Transactional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,13 +23,20 @@ import java.util.List;
 public class ServiceServiceImpl {
 
     private final ServiceRepository repository;
+    private final ClientServiceRepository clientServiceRepository;
+    private final DependencyRepository dependencyRepository;
     private static final String[] REQUIRED_HEADERS =
             {"name", "description", "tier", "ownerteam", "sla", "status"};
 
-    public ServiceServiceImpl(ServiceRepository repository) {
+    public ServiceServiceImpl(
+            ServiceRepository repository,
+            ClientServiceRepository clientServiceRepository,
+            DependencyRepository dependencyRepository
+    ) {
         this.repository = repository;
+        this.clientServiceRepository = clientServiceRepository;
+        this.dependencyRepository = dependencyRepository;
     }
-
     public List<ServiceEntity> getAllServices() {
         return repository.findAll();
     }
@@ -64,10 +75,32 @@ public class ServiceServiceImpl {
         }
         return repository.save(service);
     }
+    public ServiceDeleteInfoDTO getServiceDeleteInfo(Long id) {
+        getServiceById(id);
 
-    public void deleteService(Long id) {
-        ServiceEntity service = getServiceById(id);
-        repository.delete(service);
+        long clientAssociations = clientServiceRepository.countByServiceId(id);
+        long dependencies = dependencyRepository.countByServiceInDependencies(id);
+
+        return new ServiceDeleteInfoDTO(
+                clientAssociations > 0 || dependencies > 0,
+                clientAssociations,
+                dependencies
+        );
+    }
+    @Transactional
+    public void deleteService(Long id, boolean force) {
+        getServiceById(id);
+
+        long clientAssociations = clientServiceRepository.countByServiceId(id);
+        long dependencies = dependencyRepository.countByServiceInDependencies(id);
+
+        if ((clientAssociations > 0 || dependencies > 0) && !force) {
+            throw new RuntimeException("SERVICE_HAS_RELATIONS");
+        }
+
+        dependencyRepository.deleteByServiceInDependencies(id);
+        clientServiceRepository.deleteByServiceId(id);
+        repository.deleteById(id);
     }
     public void updateStatus(Long id, ServiceStatus status) {
         ServiceEntity service = getServiceById(id);

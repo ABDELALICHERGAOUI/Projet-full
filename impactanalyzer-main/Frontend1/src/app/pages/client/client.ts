@@ -120,26 +120,50 @@ export class ClientComponent implements OnInit {
     exportCSV() { this.dt.exportCSV(); }
 
     deleteSelectedClients() {
+        if (!this.selectedClients || this.selectedClients.length === 0) return;
+
         this.confirmationService.confirm({
-            message: `Supprimer ${this.selectedClients.length} clients ?`,
-            header: 'Confirmer',
+            message:
+                `Vous allez supprimer ${this.selectedClients.length} client(s).\n\n` +
+                `Les associations entre ces clients et les services seront supprimées aussi. ` +
+                `Les services eux-mêmes ne seront pas supprimés.\n\n` +
+                `Voulez-vous continuer ?`,
+            header: 'Confirmer la suppression multiple',
             icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Oui, supprimer',
+            rejectLabel: 'Annuler',
+            acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-text',
+
             accept: () => {
-                const ids = this.selectedClients.map(c => c.id);
-                this.apiService.deleteMultipleClients(ids).subscribe({
+                const ids = this.selectedClients
+                    .map(c => c.id)
+                    .filter((id): id is number => id !== undefined && id !== null);
+
+                this.apiService.deleteMultipleClients(ids, true).subscribe({
                     next: () => {
                         this.selectedClients = [];
                         this.getAllClients();
+
                         this.messageService.add({
-                            severity: 'success', summary: 'Supprimés',
-                            detail: 'Clients supprimés', life: 3000
+                            severity: 'success',
+                            summary: 'Clients supprimés',
+                            detail: 'Les clients sélectionnés ont été supprimés avec leurs associations.',
+                            life: 4000
+                        });
+                    },
+                    error: (err) => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Erreur',
+                            detail: err?.error?.message || 'Erreur lors de la suppression multiple.',
+                            life: 5000
                         });
                     }
                 });
             }
         });
     }
-
     openAddModal() {
         this.formClient = { name: '', email: '', segment: 'STANDARD', region: '' };
         this.isEditMode = false;
@@ -161,19 +185,59 @@ export class ClientComponent implements OnInit {
     }
 
     handleDelete(client: Client) {
-        this.confirmationService.confirm({
-            message: `Supprimer "${client.name}" ?`,
-            header: 'Confirmer',
-            icon: 'pi pi-exclamation-triangle',
-            accept: () => {
-                this.apiService.deleteClient(client.id).subscribe({
-                    next: () => {
-                        this.getAllClients();
-                        this.messageService.add({
-                            severity: 'success', summary: 'Supprimé',
-                            detail: `Client supprimé`, life: 3000
+        if (!client.id) return;
+
+        this.apiService.getClientDeleteInfo(client.id).subscribe({
+            next: (info) => {
+                let message = `Êtes-vous sûr de vouloir supprimer le client "${client.name}" ?`;
+
+                if (info.hasRelations) {
+                    message =
+                        `Le client "${client.name}" possède ${info.serviceAssociations} service(s) associé(s).\n\n` +
+                        `Si vous continuez, les associations avec ces services seront supprimées aussi. ` +
+                        `Les services eux-mêmes ne seront pas supprimés.\n\n` +
+                        `Voulez-vous vraiment supprimer ce client ?`;
+                }
+
+                this.confirmationService.confirm({
+                    message: message,
+                    header: 'Confirmer la suppression',
+                    icon: 'pi pi-exclamation-triangle',
+                    acceptLabel: 'Oui, supprimer',
+                    rejectLabel: 'Annuler',
+                    acceptButtonStyleClass: 'p-button-danger',
+                    rejectButtonStyleClass: 'p-button-text',
+
+                    accept: () => {
+                        this.apiService.deleteClient(client.id!, true).subscribe({
+                            next: () => {
+                                this.getAllClients();
+
+                                this.messageService.add({
+                                    severity: 'success',
+                                    summary: 'Client supprimé',
+                                    detail: `Le client "${client.name}" a été supprimé avec ses associations.`,
+                                    life: 4000
+                                });
+                            },
+                            error: (err) => {
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: 'Erreur',
+                                    detail: err?.error?.message || 'Erreur lors de la suppression du client.',
+                                    life: 5000
+                                });
+                            }
                         });
                     }
+                });
+            },
+            error: (err) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Erreur',
+                    detail: err?.error?.message || 'Impossible de vérifier les relations du client.',
+                    life: 5000
                 });
             }
         });
@@ -273,18 +337,44 @@ export class ClientComponent implements OnInit {
         const edges: any[] = [];
 
         // Nœud client
+        const primaryColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--primary-color')
+            .trim() || '#8b5cf6';
+
         nodes.push({
             id: 'client_' + this.currentClient.id,
             label: this.currentClient.name,
             color: {
-                background: '#1e293b',
-                border: '#6366f1',
-                highlight: { background: '#1e293b', border: '#818cf8' }
+                background: primaryColor,
+                border: '#6d28d9',
+                highlight: {
+                    background: primaryColor,
+                    border: '#4c1d95'
+                },
+                hover: {
+                    background: primaryColor,
+                    border: '#4c1d95'
+                }
             },
-            font: { color: '#ffffff', bold: true, size: 16 },
+            font: {
+                color: '#ffffff',
+                bold: true,
+                size: 20,
+                face: 'Arial'
+            },
             shape: 'box',
-            borderWidth: 3,
-            size: 35
+            borderWidth: 4,
+            size: 55,
+            margin: {
+                top: 12,
+                right: 18,
+                bottom: 12,
+                left: 18
+            },
+            widthConstraint: {
+                minimum: 150,
+                maximum: 230
+            }
         });
 
         this.clientAssociations.forEach(cs => {
@@ -302,27 +392,62 @@ export class ClientComponent implements OnInit {
 
             nodes.push({
                 id: 'svc_' + cs.id,
-                label: label,                           // ✅ label sécurisé
+                label: label,
                 title: `🔧 Tier: ${cs.serviceTier || '?'}\n📡 Status: ${cs.serviceStatus || '?'}`,
                 color: {
                     background: colors.bg,
                     border: colors.border,
-                    hover: { background: '#fee2e2', border: '#ef4444' }
+                    highlight: {
+                        background: colors.bg,
+                        border: primaryColor
+                    },
+                    hover: {
+                        background: colors.bg,
+                        border: primaryColor
+                    }
                 },
-                font: { color: colors.font, size: 14 },
+                font: {
+                    color: colors.font,
+                    size: 18,
+                    bold: true,
+                    face: 'Arial'
+                },
                 shape: 'ellipse',
-                borderWidth: 2,
+                borderWidth: 3,
+                size: 48,
+                margin: {
+                    top: 10,
+                    right: 16,
+                    bottom: 10,
+                    left: 16
+                },
+                widthConstraint: {
+                    minimum: 145,
+                    maximum: 230
+                },
                 assocId: cs.id,
-                serviceName: label                      // ✅ aussi sécurisé
+                serviceName: label
             });
 
             edges.push({
                 from: 'client_' + this.currentClient.id,
                 to: 'svc_' + cs.id,
-                arrows: 'to',
-                color: { color: '#94a3b8', highlight: '#6366f1' },
-                width: 2,
-                smooth: { enabled: true, type: 'cubicBezier', roundness: 0.3 }
+                arrows: {
+                    to: {
+                        enabled: true,
+                        scaleFactor: 1.25
+                    }
+                },
+                color: {
+                    color: '#64748b',
+                    highlight: primaryColor
+                },
+                width: 3,
+                smooth: {
+                    enabled: true,
+                    type: 'cubicBezier',
+                    roundness: 0.3
+                }
             });
         });
 
@@ -331,14 +456,37 @@ export class ClientComponent implements OnInit {
                 hierarchical: {
                     direction: 'UD',
                     sortMethod: 'directed',
-                    levelSeparation: 150,
-                    nodeSpacing: 150
+                    levelSeparation: 170,
+                    nodeSpacing: 180
+                }
+            },
+            nodes: {
+                font: {
+                    size: 18,
+                    face: 'Arial'
+                },
+                margin: {
+                    top: 10,
+                    right: 16,
+                    bottom: 10,
+                    left: 16
+                }
+            },
+            edges: {
+                width: 3,
+                arrows: {
+                    to: {
+                        enabled: true,
+                        scaleFactor: 1.25
+                    }
                 }
             },
             physics: { enabled: false },
-            interaction: { hover: true, tooltipDelay: 100 }
+            interaction: {
+                hover: true,
+                tooltipDelay: 100
+            }
         };
-
         this.network = new Network(
             this.assocGraphContainer.nativeElement,
             { nodes: new DataSet(nodes), edges: new DataSet(edges) },
@@ -499,8 +647,4 @@ export class ClientComponent implements OnInit {
             }
         });
     }
-    /************/
-
-
-
 }

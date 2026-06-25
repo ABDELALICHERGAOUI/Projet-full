@@ -4,40 +4,42 @@
 <div class="card">
 
     <!-- Toolbar -->
-    <p-toolbar styleClass="mb-6">
-        <ng-template #start>
-            <p-button label="Nouveau Client" icon="pi pi-plus"
-                      severity="secondary" class="mr-2"
-                      (onClick)="openAddModal()" />
-            <p-button label="Supprimer" icon="pi pi-trash"
-                      severity="danger" outlined
-                      [disabled]="!selectedClients || !selectedClients.length"
-                      (onClick)="deleteSelectedClients()" />
-        </ng-template>
-        <ng-template #end>
+    <!-- Header page Clients -->
+    <div class="clients-header">
+        <div class="clients-title-block">
+            <div class="clients-title-icon">
+                <i class="pi pi-users"></i>
+            </div>
 
-            <!-- ✅ Bouton Import -->
-            <p-button label="Importer CSV"
-                      icon="pi pi-download"
-                      severity="secondary"
-                      [outlined]="true"
-                      class="mr-2"
-                      (onClick)="triggerImport()" />
+            <div>
+                <h2>Gestion des Clients</h2>
+                <p>Administration des clients, de leurs segments et des services associés.</p>
+            </div>
+        </div>
 
-            <!--  Input file caché -->
-            <input #csvInput
-                   type="file"
-                   accept=".csv"
-                   style="display:none"
-                   (change)="onFileSelected($event)" />
+        <div class="clients-main-actions">
+            <p-button
+                label="Nouveau Client"
+                icon="pi pi-plus"
+                class="new-client-btn"
+                (onClick)="openAddModal()" />
 
-            <!-- Bouton Export existant -->
-            <p-button label="Exporter CSV"
-                      icon="pi pi-upload"
-                      severity="secondary"
-                      (onClick)="exportCSV()" />
-        </ng-template>
-    </p-toolbar>
+            <p-button
+                label="Supprimer"
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                [disabled]="!selectedClients || !selectedClients.length"
+                (onClick)="deleteSelectedClients()" />
+        </div>
+    </div>
+
+    <!-- Input file caché pour import CSV -->
+    <input #csvInput
+           type="file"
+           accept=".csv"
+           style="display:none"
+           (change)="onFileSelected($event)" />
 
     <!--  Dialog résultat import -->
 
@@ -50,15 +52,15 @@
 
                 <!-- Statistiques -->
                 <div class="flex gap-4">
-                    <div class="stat-card success">
+                    <div class="import-stat-card success">
                         <span class="stat-number">{{ importResult?.imported }}</span>
                         <span class="stat-label">Importés</span>
                     </div>
-                    <div class="stat-card warning">
+                    <div class="import-stat-card warning">
                         <span class="stat-number">{{ importResult?.skipped }}</span>
                         <span class="stat-label">Ignorés (doublons)</span>
                     </div>
-                    <div class="stat-card danger">
+                    <div class="import-stat-card danger">
                         <span class="stat-number">{{ importResult?.errors }}</span>
                         <span class="stat-label">Erreurs</span>
                     </div>
@@ -103,17 +105,37 @@
 
         <!-- Barre de recherche -->
         <ng-template #caption>
-            <div class="flex items-center justify-between">
-                <h5 class="m-0">Gestion des Clients</h5>
-                <p-iconfield>
-                    <p-inputicon styleClass="pi pi-search" />
-                    <input
-                        pInputText
-                        type="text"
-                        [(ngModel)]="searchValue"
-                        (input)="dt.filterGlobal(searchValue, 'contains')"
-                        placeholder="Rechercher..." />
-                </p-iconfield>
+            <div class="table-caption">
+                <div>
+                    <h3 class="table-title">Liste des clients</h3>
+                    <p class="table-subtitle">Rechercher, importer ou exporter les clients.</p>
+                </div>
+
+                <div class="table-actions">
+                    <p-iconfield class="search-field">
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input
+                            pInputText
+                            type="text"
+                            [(ngModel)]="searchValue"
+                            (input)="dt.filterGlobal(searchValue, 'contains')"
+                            placeholder="Rechercher..." />
+                    </p-iconfield>
+
+                    <p-button
+                        label="Importer CSV"
+                        icon="pi pi-upload"
+                        severity="secondary"
+                        [outlined]="true"
+                        (onClick)="triggerImport()" />
+
+                    <p-button
+                        label="Exporter CSV"
+                        icon="pi pi-download"
+                        severity="secondary"
+                        [outlined]="true"
+                        (onClick)="exportCSV()" />
+                </div>
             </div>
         </ng-template>
 
@@ -263,23 +285,25 @@
     </ng-template>
 </p-dialog>
 <!-- ═══ Dialog Services Associés ═══ -->
-<p-dialog
-    [(visible)]="assocDialog"
-    [header]="'Services — ' + (currentClient?.name || '')"
-    [modal]="true"
-    [style]="{ width: '850px', minHeight: '600px' }"
-    [draggable]="false"
-    (onHide)="closeAssocDialog()">
+    <p-dialog
+        [(visible)]="assocDialog"
+        [header]="'Services associés — ' + (currentClient?.name || '')"
+        [modal]="true"
+        styleClass="assoc-dialog"
+        [style]="{ width: '820px', maxWidth: '95vw' }"
+        [draggable]="false"
+        (onHide)="closeAssocDialog()">
 
     <ng-template #content>
         <!-- Bouton ajouter -->
-        <div class="flex justify-content-between align-items-center mb-4">
+        <div class="assoc-dialog-toolbar">
             <span class="text-color-secondary text-sm">
                 <i class="pi pi-info-circle mr-1"></i>
                 Cliquez sur un service dans le graphe pour le supprimer
             </span>
-            <p-button label="Ajouter un service"
-                      icon="pi pi-plus" severity="secondary"
+            <p-button label="Associer  un service"
+                      icon="pi pi-link"
+                      class="assoc-service-btn"
                       (onClick)="openAddAssocDialog()" />
         </div>
 

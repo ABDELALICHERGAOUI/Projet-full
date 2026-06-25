@@ -1,7 +1,7 @@
 <p-toast />
 
 <!-- Header -->
-<div class="card mb-4">
+<div class="card topo-header-card">
     <div class="flex align-items-center justify-content-between flex-wrap gap-4">
 
         <div class="flex align-items-center gap-3">
@@ -9,33 +9,55 @@
                 <i class="pi pi-share-alt"
                    style="font-size:1.8rem; color:white"></i>
             </div>
+
             <div>
                 <h2 class="m-0 text-2xl font-bold">Topologie du Système</h2>
                 <p class="m-0 text-color-secondary mt-1">
-                    Vue globale de tous les services et leurs dépendances
+                    Vue globale de tous les services et de leurs dépendances
                 </p>
             </div>
         </div>
 
         <!-- Actions -->
         <div class="flex gap-2 flex-wrap">
-            <p-button icon="pi pi-filter-slash" label="Réinitialiser"
-                      severity="secondary" [outlined]="true"
-                      (onClick)="resetFilters()"
-                      pTooltip="Réinitialiser les filtres" />
-            <p-button icon="pi pi-arrows-alt" label="Centrer"
-                      severity="secondary" [outlined]="true"
-                      (onClick)="fitGraph()"
-                      pTooltip="Recentrer le graphe" />
-            <p-button icon="pi pi-refresh" label="Actualiser"
-                      severity="secondary"
-                      (onClick)="refresh()" />
+            <p-button
+                icon="pi pi-filter-slash"
+                label="Réinitialiser"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="resetFilters()"
+                pTooltip="Réinitialiser les filtres" />
+
+            <p-button
+                icon="pi pi-arrows-alt"
+                label="Centrer"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="fitGraph()"
+                pTooltip="Recentrer le graphe" />
+
+            @if (simulationActive) {
+                <p-button
+                    icon="pi pi-undo"
+                    label="Réinitialiser simulation"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="resetSimulation()"
+                    pTooltip="Annuler la simulation et remettre les couleurs normales" />
+            }
+
+            <p-button
+                icon="pi pi-refresh"
+                label="Actualiser"
+                severity="secondary"
+                (onClick)="refresh()"
+                pTooltip="Recharger les données" />
         </div>
     </div>
 </div>
 
 <!-- KPI Stats -->
-<div class="stats-grid mb-4">
+<div class="stats-grid">
 
     <div class="card stat-card">
         <div class="stat-icon-wrap" style="background:#ede9fe">
@@ -86,16 +108,17 @@
             <div class="stat-label">Dépendances</div>
         </div>
     </div>
+
 </div>
 
-<!-- Filtres + Graphe -->
+<!-- Layout principal : gauche | graphe | droite -->
 <div class="topo-layout">
 
-    <!-- Panneau gauche : filtres + info nœud -->
-    <div class="topo-sidebar">
+    <!-- Colonne gauche : filtres + légende -->
+    <aside class="topo-sidebar">
 
         <!-- Filtres -->
-        <div class="card mb-3">
+        <div class="card">
             <h4 class="mt-0 mb-3">
                 <i class="pi pi-filter mr-2"
                    style="color:var(--primary-color)"></i>
@@ -103,8 +126,9 @@
             </h4>
 
             <div class="flex flex-col gap-3">
+
                 <div>
-                    <label class="block font-semibold mb-2 text-sm">
+                    <label class="block font-semibold mb-2">
                         Par Tier
                     </label>
                     <p-select
@@ -113,11 +137,12 @@
                         optionLabel="label"
                         optionValue="value"
                         (onChange)="applyFilters()"
-                        class="w-full" fluid />
+                        class="w-full"
+                        fluid />
                 </div>
 
                 <div>
-                    <label class="block font-semibold mb-2 text-sm">
+                    <label class="block font-semibold mb-2">
                         Par Status
                     </label>
                     <p-select
@@ -126,140 +151,333 @@
                         optionLabel="label"
                         optionValue="value"
                         (onChange)="applyFilters()"
-                        class="w-full" fluid />
+                        class="w-full"
+                        fluid />
                 </div>
+
             </div>
         </div>
 
-        <!-- Info nœud sélectionné -->
-        @if (selectedNode) {
-            <div class="card node-info-card">
-                <h4 class="mt-0 mb-3">
-                    <i class="pi pi-info-circle mr-2"
-                       style="color:var(--primary-color)"></i>
-                    Service sélectionné
-                </h4>
-
-                <div class="flex flex-col gap-3">
-                    <div>
-                        <div class="info-label">Nom</div>
-                        <div class="info-value font-bold">
-                            {{ selectedNode.name }}
-                        </div>
-                    </div>
-                    <div>
-                        <div class="info-label">Tier</div>
-                        <p-tag [value]="selectedNode.tier"
-                               [severity]="getTierSeverity(selectedNode.tier)" />
-                    </div>
-                    <div>
-                        <div class="info-label">Status</div>
-                        <p-tag [value]="selectedNode.status"
-                               [severity]="selectedNode.status === 'UP'
-                                           ? 'success' : 'danger'" />
-                    </div>
-                    <div>
-                        <div class="info-label">Équipe</div>
-                        <div class="info-value">
-                            {{ selectedNode.ownerTeam || 'N/A' }}
-                        </div>
-                    </div>
-                    <div>
-                        <div class="info-label">SLA</div>
-                        <div class="info-value">
-                            {{ selectedNode.sla || 'N/A' }}%
-                        </div>
-                    </div>
-                </div>
-            </div>
-        } @else {
-            <div class="card text-center"
-                 style="color:var(--text-color-secondary)">
-                <i class="pi pi-hand-pointer mb-2"
-                   style="font-size:2rem; display:block"></i>
-                <p class="m-0 text-sm">
-                    Cliquez sur un nœud pour voir ses détails
-                </p>
-            </div>
-        }
-
         <!-- Légende -->
-        <div class="card mt-3">
+        <div class="card legend-card">
             <h4 class="mt-0 mb-3">
                 <i class="pi pi-list mr-2"
                    style="color:var(--primary-color)"></i>
                 Légende
             </h4>
 
-            <div class="legend-section mb-3">
-                <div class="legend-title">Tier (nœuds)</div>
-                <div class="legend-item">
-                    <span class="legend-dot"
-                          style="background:#ef4444"></span>CRITICAL
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot"
-                          style="background:#f97316"></span>HIGH
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot"
-                          style="background:#3b82f6"></span>MEDIUM
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot"
-                          style="background:#22c55e"></span>LOW
-                </div>
-            </div>
-
-            <div class="legend-section mb-3">
-                <div class="legend-title">Status (nœuds)</div>
-                <div class="legend-item">
-                    <span class="legend-dot"
-                          style="background:#dcfce7;
-                                 border:2px solid #22c55e"></span>UP
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot"
-                          style="background:#fca5a5;
-                                 border:2px dashed #dc2626"></span>DOWN
-                </div>
-            </div>
-
+            <!-- Tier -->
             <div class="legend-section">
-                <div class="legend-title">Criticité (flèches)</div>
-                <div class="legend-item">
-                    <span class="legend-line"
-                          style="background:#ef4444"></span>HIGH
+                <div class="legend-title" style="color:#1a2387">
+                    Tier : forme + couleur
                 </div>
+
                 <div class="legend-item">
-                    <span class="legend-line"
-                          style="background:#f59e0b"></span>MEDIUM
+                    <span style="background:#FECACA; border:2px solid #DC2626;
+                                 display:inline-block; width:16px; height:12px;
+                                 border-radius:2px; margin-right:6px"></span>
+                    CRITICAL
                 </div>
+
                 <div class="legend-item">
-                    <span class="legend-line"
-                          style="background:#10b981"></span>LOW
+                    <span style="background:#FED7AA; border:2px solid #F97316;
+                                 display:inline-block; width:12px; height:12px;
+                                 transform:rotate(45deg); margin-right:10px; margin-left:2px"></span>
+                    HIGH
                 </div>
+
                 <div class="legend-item">
-                    <span class="legend-line dashed"
-                          style="background:#6b7280"></span>ASYNC
+                    <span style="background:#BFDBFE; border:2px solid #3B82F6;
+                                 display:inline-block; width:18px; height:11px;
+                                 border-radius:50%; margin-right:6px"></span>
+                    MEDIUM
+                </div>
+
+                <div class="legend-item">
+                    <span style="background:#BBF7D0; border:2px solid #16A34A;
+                                 display:inline-block; width:18px; height:11px;
+                                 border-radius:50%; margin-right:6px"></span>
+                    LOW
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Graphe principal -->
-    <div class="card topo-graph-card">
-        @if (isLoading) {
-            <div class="flex align-items-center
-                        justify-content-center h-full gap-3">
+            <!-- Statut -->
+            <div class="legend-section">
+                <div class="legend-title" style="color:#1a2387">
+                    Statut : bordure
+                </div>
+
+                <div class="legend-item">
+                    <span style="background:#BFDBFE; border:1.5px solid #3B82F6;
+                                 display:inline-block; width:18px; height:11px;
+                                 border-radius:50%; margin-right:6px"></span>
+                    UP
+                </div>
+
+                <div class="legend-item">
+                    <span style="background:#BFDBFE; border:4px solid #EF4444;
+                                 display:inline-block; width:18px; height:11px;
+                                 border-radius:50%; margin-right:6px"></span>
+                    DOWN
+                </div>
+            </div>
+
+            <!-- Mode simulation -->
+            <div class="legend-section">
+                <div class="legend-title" style="color:#1a2387">
+                    Mode simulation
+                </div>
+
+                <div class="legend-item">
+                    <span style="background:#DC2626; border:2px solid #7F1D1D;
+                                 display:inline-block; width:18px; height:11px;
+                                 border-radius:50%; margin-right:6px"></span>
+                    En panne
+                </div>
+
+                <div class="legend-item">
+                    <span style="background:#F97316; border:2px solid #C2410C;
+                                 display:inline-block; width:18px; height:11px;
+                                 border-radius:50%; margin-right:6px"></span>
+                    Impacté
+                </div>
+
+                <div class="legend-item">
+                    <span style="background:#E2E8F0; border:1px solid #CBD5E1;
+                                 display:inline-block; width:18px; height:11px;
+                                 border-radius:50%; margin-right:6px"></span>
+                    Non impacté
+                </div>
+            </div>
+
+            <!-- Criticité des dépendances -->
+            <div class="legend-section">
+                <div class="legend-title" style="color:#1a2387">
+                    Criticité : flèches
+                </div>
+
+                <div class="legend-item">
+                    <span class="legend-line" style="background:#ef4444"></span>
+                    HIGH
+                </div>
+
+                <div class="legend-item">
+                    <span class="legend-line" style="background:#f59e0b"></span>
+                    MEDIUM
+                </div>
+
+                <div class="legend-item">
+                    <span class="legend-line" style="background:#10b981"></span>
+                    LOW
+                </div>
+
+                <div class="legend-item">
+                    <span class="legend-line dashed" style="background:#6b7280"></span>
+                    ASYNC
+                </div>
+            </div>
+
+        </div>
+    </aside>
+
+    <!-- Zone centrale : graphe -->
+    <main class="topo-main">
+        <div class="card topo-graph-card">
+
+            @if (isLoading) {
+                <div class="flex align-items-center justify-content-center h-full gap-3">
+                    <i class="pi pi-spin pi-spinner"
+                       style="font-size:4rem; color:var(--primary-color)"></i>
+                    <span class="text-color-secondary">
+                        Chargement de la topologie...
+                    </span>
+                </div>
+            }
+
+            <div
+                #topoGraph
+                class="topo-graph-container"
+                [class.hidden]="isLoading">
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Colonne droite : détails + simulation -->
+    <aside class="topo-details-panel">
+
+        <!-- Chargement simulation -->
+        @if (simulationLoading) {
+            <div class="card text-center" style="padding:1.5rem">
                 <i class="pi pi-spin pi-spinner"
-                   style="font-size:2rem; color:var(--primary-color)"></i>
-                <span class="text-color-secondary">
-                    Chargement de la topologie...
-                </span>
+                   style="font-size:2rem; color:var(--primary-color); display:block; margin-bottom:0.75rem"></i>
+                <p class="m-0" style="font-size:14px; color:var(--text-color-secondary)">
+                    Simulation en cours...
+                </p>
             </div>
         }
-        <div #topoGraph class="topo-graph-container"
-             [class.hidden]="isLoading"></div>
-    </div>
+
+        <!-- Service sélectionné -->
+        @if (selectedNode && !simulationLoading) {
+
+            <div class="card node-info-card">
+                <h4 class="mt-0">
+                    <i class="pi pi-info-circle mr-2"
+                       style="color:var(--primary-color)"></i>
+                    Service sélectionné
+                </h4>
+
+                <div class="flex flex-col gap-3">
+
+                    <div>
+                        <div class="info-label">Nom</div>
+                        <div class="info-value font-bold">
+                            {{ selectedNode.name }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="info-label">Tier</div>
+                        <p-tag
+                            [value]="selectedNode.tier"
+                            [severity]="getTierSeverity(selectedNode.tier)" />
+                    </div>
+
+                    <div>
+                        <div class="info-label">Status</div>
+                        <p-tag
+                            [value]="selectedNode.status"
+                            [severity]="selectedNode.status === 'UP' ? 'success' : 'danger'" />
+                    </div>
+
+                    <div>
+                        <div class="info-label">Équipe</div>
+                        <div class="info-value">
+                            {{ selectedNode.ownerTeam || 'N/A' }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="info-label">SLA</div>
+                        <div class="info-value">
+                            {{ selectedNode.sla || 'N/A' }}%
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Résultat simulation -->
+            @if (simulationActive && simulationResult) {
+                <div class="card sim-result-card">
+
+                    <h4 class="mt-0 mb-3 sim-result-title">
+                        <i class="pi pi-bolt mr-2"></i>
+                        Aperçu de l'impact
+                    </h4>
+
+                    <div class="sim-row">
+                        <span class="sim-label">En panne</span>
+                        <span class="sim-value-red">
+                            {{ selectedNode.name }}
+                        </span>
+                    </div>
+
+                    <div class="sim-row">
+                        <span class="sim-label">Services impactés</span>
+                        <span class="sim-value-orange">
+                            {{ simulationResult.impactedServices?.length || 0 }} service(s)
+                        </span>
+                    </div>
+
+                    <div class="sim-row">
+                        <span class="sim-label">Clients affectés</span>
+                        <span class="sim-value">
+                            {{
+                                simulationResult.affectedClients?.length
+                                || simulationResult.impactedClients?.length
+                                || 0
+                            }} affecté(s)
+                        </span>
+                    </div>
+
+                    @if (simulationResult.impactScore != null) {
+                        <div class="sim-row">
+                            <span class="sim-label">Score d'impact</span>
+                            <span class="sim-value">
+                                {{ simulationResult.impactScore | number:'1.0-0' }} / 100
+                            </span>
+                        </div>
+                    }
+
+                    @if (simulationResult.severity || simulationResult.overallSeverity) {
+                        <div class="sim-row">
+                            <span class="sim-label">Sévérité</span>
+                            <p-tag
+                                [value]="simulationResult.severity || simulationResult.overallSeverity"
+                                [severity]="getSeverityClass(simulationResult.severity || simulationResult.overallSeverity)" />
+                        </div>
+                    }
+
+                    <div class="sim-divider"></div>
+
+                    <p-button
+                        label="Voir l'analyse complète"
+                        icon="pi pi-arrow-right"
+                        iconPos="right"
+                        severity="danger"
+                        styleClass="w-full sim-go-btn"
+                        (onClick)="goToImpact()"
+                        pTooltip="Ouvrir la page Impact avec tous les détails" />
+
+                    <p-button
+                        label="Réinitialiser"
+                        icon="pi pi-undo"
+                        severity="secondary"
+                        [outlined]="true"
+                        styleClass="w-full mt-2"
+                        (onClick)="resetSimulation()" />
+
+                </div>
+            }
+
+        } @else if (!simulationLoading) {
+
+            <!-- Aucun service sélectionné -->
+            <div class="card text-center empty-selection-card">
+
+                <i class="pi pi-hand-pointer mb-2"
+                   style="font-size:2rem; display:block; color:var(--primary-color)"></i>
+
+                <h4 class="mt-0 mb-2">
+                    Aucun service sélectionné
+                </h4>
+
+                <p class="m-0 text-sm " style="font-size: 16px">
+                    Cliquez sur un nœud dans le graphe pour afficher ses détails
+                    et simuler son impact.
+                </p>
+
+                <div class="sim-hint-legend" >
+                    <div class="sim-hint-item">
+                        <span class="sim-hint-dot" style="background:#DC2626"></span>
+                        Service en panne
+                    </div>
+
+                    <div class="sim-hint-item">
+                        <span class="sim-hint-dot" style="background:#F97316"></span>
+                        Service impacté
+                    </div>
+
+                    <div class="sim-hint-item">
+                        <span class="sim-hint-dot" style="background:#E2E8F0"></span>
+                        Non impacté
+                    </div>
+                </div>
+
+            </div>
+        }
+
+    </aside>
+
 </div>

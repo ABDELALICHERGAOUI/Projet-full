@@ -7,6 +7,16 @@ import { Dependency } from '../models/dependency.model';
 import { ImpactDTO } from '../models/impact.dto.model';
 import { ClientService } from "../models/ClientService.model";
 
+export interface ClientDeleteInfo {
+    hasRelations: boolean;
+    serviceAssociations: number;
+}
+
+export interface ServiceDeleteInfo {
+    hasRelations: boolean;
+    clientAssociations: number;
+    dependencies: number;
+}
 @Injectable({
     providedIn: 'root'
 })
@@ -40,11 +50,19 @@ export class ApiService {
         // ✅ any pour payload flexible
         return this.http.put<any>(`${this.baseUrl}/services/${id}`, service);
     }
+    // ── Delete info Service ────────────────────────────
+    getServiceDeleteInfo(id: number) {
+        return this.http.get<ServiceDeleteInfo>(`${this.baseUrl}/services/${id}/delete-info`);
+    }
 
+    deleteService(id: number, force: boolean = false) {
+        return this.http.delete<void>(`${this.baseUrl}/services/${id}?force=${force}`);
+    }
+/*
     deleteService(id: number): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/services/${id}`);
     }
-
+*/
     updateServiceStatus(id: number, status: string): Observable<void> {
         return this.http.patch<void>(`${this.baseUrl}/services/${id}`, status);
     }
@@ -65,7 +83,21 @@ export class ApiService {
     updateClient(id: number, client: Client): Observable<Client> {
         return this.http.put<Client>(`${this.baseUrl}/clients/${id}`, client);
     }
+    // ── Delete info Client ─────────────────────────────
+    getClientDeleteInfo(id: number) {
+        return this.http.get<ClientDeleteInfo>(`${this.baseUrl}/clients/${id}/delete-info`);
+    }
 
+    deleteClient(id: number, force: boolean = false) {
+        return this.http.delete<void>(`${this.baseUrl}/clients/${id}?force=${force}`);
+    }
+
+    deleteMultipleClients(ids: number[], force: boolean = false) {
+        return this.http.delete<void>(`${this.baseUrl}/clients/batch?force=${force}`, {
+            body: ids
+        });
+    }
+/*
     deleteClient(id: number): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/clients/${id}`);
     }
@@ -73,7 +105,7 @@ export class ApiService {
     deleteMultipleClients(ids: number[]): Observable<any> {
         return this.http.delete(`${this.baseUrl}/clients/batch`, { body: ids });
     }
-
+*/
     // ========== DEPENDANCES ==========
     getDependencies(): Observable<Dependency[]> {
         return this.http.get<Dependency[]>(`${this.baseUrl}/dependencies`);
@@ -138,4 +170,7 @@ export class ApiService {
         formData.append('file', file, file.name);
         return this.http.post<any>(`${this.baseUrl}/services/import/csv`, formData);
     }
+
+
+
 }

@@ -3,6 +3,7 @@ import { Component, OnInit, ViewChild,
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';           // ✅ NOUVEAU : navigation vers page Impact
 import { Network, Options } from 'vis-network';
 import { DataSet } from 'vis-data';
 import { MessageService } from 'primeng/api';
@@ -12,6 +13,7 @@ import { ToastModule } from 'primeng/toast';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { ApiService } from '../../services/api.service';
 
 @Component({
     selector: 'app-topology',
@@ -32,6 +34,10 @@ export class TopologyComponent implements OnInit {
 
     private network: any = null;
     private apiUrl = 'http://localhost:8080';
+
+    // ✅ NOUVEAU : références aux DataSets pour mise à jour dynamique des couleurs
+    private nodesDataset!: DataSet<any>;
+    private edgesDataset!: DataSet<any>;
 
     // Données
     services: any[] = [];
@@ -68,10 +74,18 @@ export class TopologyComponent implements OnInit {
     // Service sélectionné dans le graphe
     selectedNode: any = null;
 
+    // ✅ NOUVEAU : état de la simulation légère
+    simulationActive  = false;
+    simulationLoading = false;
+    simulationResult: any = null;
+
     constructor(
         private http: HttpClient,
         private messageService: MessageService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private router: Router ,  // injection du Router
+        private apiService: ApiService
+
     ) {}
 
     ngOnInit(): void {
@@ -81,7 +95,6 @@ export class TopologyComponent implements OnInit {
     loadData(): void {
         this.isLoading = true;
 
-        // Charger services et dépendances en parallèle
         this.http.get<any[]>(`${this.apiUrl}/services`).subscribe({
             next: (services) => {
                 this.services = services;
@@ -131,25 +144,43 @@ export class TopologyComponent implements OnInit {
         const edges: any[] = [];
         const nodeIds = new Set<number>();
 
-        // Filtrer les services selon les filtres actifs
         const filteredServices = this.services.filter(s => {
             if (this.filterTier && s.tier !== this.filterTier) return false;
             if (this.filterStatus && s.status !== this.filterStatus) return false;
             return true;
         });
 
-        // Couleurs par tier
-        const tierColors: any = {
-            'CRITICAL': { bg: '#fee2e2', border: '#ef4444', font: '#991b1b' },
-            'HIGH':     { bg: '#ffedd5', border: '#f97316', font: '#9a3412' },
-            'MEDIUM':   { bg: '#eff6ff', border: '#3b82f6', font: '#1e40af' },
-            'LOW':      { bg: '#f0fdf4', border: '#22c55e', font: '#166534' }
+        const shapeMap: any = {
+            'CRITICAL': 'box',
+            'HIGH':     'diamond',
+            'MEDIUM':   'ellipse',
+            'LOW':      'ellipse'
         };
 
-        // Créer les nœuds
+        const bgColorMap: any = {
+            'CRITICAL': '#FECACA',
+            'HIGH':     '#FED7AA',
+            'MEDIUM':   '#BFDBFE',
+            'LOW':      '#BBF7D0'
+        };
+
+        const borderColorMap: any = {
+            'CRITICAL': '#DC2626',
+            'HIGH':     '#F97316',
+            'MEDIUM':   '#3B82F6',
+            'LOW':      '#16A34A'
+        };
+
+        const fontColorMap: any = {
+            'CRITICAL': '#7F1D1D',
+            'HIGH':     '#9A3412',
+            'MEDIUM':   '#1E40AF',
+            'LOW':      '#166534'
+        };
+
         filteredServices.forEach(service => {
-            const colors = tierColors[service.tier] || tierColors['MEDIUM'];
             const isDown = service.status === 'DOWN';
+            const tier   = service.tier || 'MEDIUM';
 
             nodes.push({
                 id: service.id,
@@ -160,91 +191,107 @@ export class TopologyComponent implements OnInit {
                     `📊 SLA: ${service.sla || 'N/A'}%\n` +
                     `📡 Status: ${service.status}`,
                 color: {
-                    background: isDown ? '#fca5a5' : colors.bg,
-                    border:     isDown ? '#dc2626' : colors.border,
+                    background: bgColorMap[tier] || '#BFDBFE',
+                    border: isDown
+                        ? '#EF4444'
+                        : (borderColorMap[tier] || '#3B82F6'),
                     highlight: {
-                        background: '#ddd6fe',
-                        border: '#7c3aed'
+                        background: bgColorMap[tier] || '#BFDBFE',
+                        border: '#7C3AED'
                     },
                     hover: {
-                        background: '#e0e7ff',
-                        border: '#4f46e5'
+                        background: '#E0E7FF',
+                        border: '#4F46E5'
                     }
                 },
+                /*font: {
+                    color: fontColorMap[tier] || '#1E40AF',
+                    size: 20,
+                    face: 'Arial',
+                    bold: isDown || service.tier === 'CRITICAL'
+                },
+                shape: shapeMap[tier] || 'ellipse',
+                borderWidth: isDown ? 4 : 1.5,
+                borderDashes: false,
+                size: 90,
+                widthConstraint: { minimum: 160, maximum: 280 },
+                serviceData: service*/
                 font: {
-                    color: isDown ? '#7f1d1d' : colors.font,
-                    size: 16,
-                    bold: service.tier === 'CRITICAL'
+                    color: fontColorMap[tier] || '#1E40AF',
+                    size: 14,
+                    face: 'Arial',
+                    bold: isDown || service.tier === 'CRITICAL'
                 },
-                shape: service.tier === 'CRITICAL' ? 'box' : 'ellipse',
-                borderWidth: isDown ? 3 : 2,
-                borderDashes: isDown,     // ← bordure pointillée si DOWN
-                size: 35,
-                widthConstraint: {
-                    minimum: 120,
-                    maximum: 180
-                },
-                serviceData: service      // stocker les données
+                shape: shapeMap[tier] || 'ellipse',
+                borderWidth: isDown ? 3 : 1.5,
+                borderDashes: false,
+                size: 32,
+                widthConstraint: { minimum: 110, maximum: 190 },
+                serviceData: service
             });
             nodeIds.add(service.id);
         });
 
-        // Couleurs des flèches par criticité
         const edgeColors: any = {
             'HIGH':   { color: '#ef4444', width: 3 },
             'MEDIUM': { color: '#f59e0b', width: 2 },
             'LOW':    { color: '#10b981', width: 1 }
         };
 
-        // Créer les arêtes (seulement si les 2 nœuds sont visibles)
         this.dependencies.forEach(dep => {
-            const fromId = dep.service?.id;
-            const toId   = dep.dependsOn?.id;
+            const fromId = dep.dependsOn?.id;
+            const toId   = dep.service?.id;
             if (!fromId || !toId) return;
             if (!nodeIds.has(fromId) || !nodeIds.has(toId)) return;
 
             const ec = edgeColors[dep.criticality] || edgeColors['MEDIUM'];
 
             edges.push({
-                from: fromId,
-                to: toId,
+                id:     dep.id,   // ✅ NOUVEAU : ID de l'arête pour mise à jour dynamique
+                from:   fromId,
+                to:     toId,
                 arrows: 'to',
-                label: dep.dependencyType,
-                font: { size: 9, color: '#6b7280',
-                    strokeWidth: 2, strokeColor: '#fff' },
+                label:  dep.dependencyType,
+                /*font: { size: 18, color: '#6b7280',
+                    strokeWidth: 2, strokeColor: '#fff' },*/
+                font: {
+                    size: 11,
+                    color: '#6b7280',
+                    strokeWidth: 3,
+                    strokeColor: '#ffffff',
+                    align: 'middle'
+                },
                 color: { color: ec.color, highlight: '#7c3aed' },
                 width: ec.width,
                 dashes: dep.dependencyType === 'ASYNC_EVENT',
-                smooth: { enabled: true, type: 'cubicBezier', roundness: 0.3 }
+                smooth: {
+                    enabled: true,
+                    type: 'curvedCW',
+                    roundness: 0.18
+                }
+                /*smooth: { enabled: true, type: 'cubicBezier', roundness: 0.3 }*/
+
             });
         });
 
-        const options: Options = {
+        /*const options: Options = {
             layout: { improvedLayout: true },
             nodes: {
-                size: 35,              //  taille globale des nœuds
-                font: {
-                    size: 16,          //  taille globale du texte
-                    face: 'Arial'
-                },
-                margin: {              //  espace intérieur des nœuds
-                    top: 12,
-                    right: 16,
-                    bottom: 12,
-                    left: 16
-                }
+                size: 55,
+                font: { size: 20, face: 'Arial' },
+                margin: { top: 16, right: 22, bottom: 16, left: 22 }
             },
             edges: {
-                font: { size: 11 },   //  labels des flèches un peu plus grands
+                font: { size: 11 },
                 smooth: { enabled: true, type: 'dynamic', roundness: 0.3 }
             },
             physics: {
                 enabled: true,
                 solver: 'forceAtlas2Based',
                 forceAtlas2Based: {
-                    gravitationalConstant: -80,  //  plus d'espace entre nœuds
+                    gravitationalConstant: -80,
                     centralGravity: 0.01,
-                    springLength: 250,           // augmenté pour plus d'espace
+                    springLength: 250,
                     springConstant: 0.08,
                     damping: 0.4
                 },
@@ -257,15 +304,73 @@ export class TopologyComponent implements OnInit {
                 keyboard: true,
                 zoomView: true
             }
+        };*/
+        const options: Options = {
+            layout: {
+                improvedLayout: true
+            },
+            nodes: {
+                size: 32,
+                font: {
+                    size: 14,
+                    face: 'Arial'
+                },
+                margin: {
+                    top: 10,
+                    right: 16,
+                    bottom: 10,
+                    left: 16
+                }
+            },
+            edges: {
+                font: {
+                    size: 11,
+                    color: '#6b7280',
+                    strokeWidth: 3,
+                    strokeColor: '#ffffff'
+                },
+                smooth: {
+                    enabled: true,
+                    type: 'dynamic',
+                    roundness: 0.25
+                }
+            },
+            physics: {
+                enabled: true,
+                solver: 'forceAtlas2Based',
+                forceAtlas2Based: {
+                    gravitationalConstant: -65,
+                    centralGravity: 0.015,
+                    springLength: 190,
+                    springConstant: 0.06,
+                    damping: 0.45
+                },
+                stabilization: {
+                    iterations: 150,
+                    updateInterval: 25
+                }
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 150,
+                navigationButtons: true,
+                keyboard: true,
+                zoomView: true,
+                dragView: true
+            }
         };
+
+        // ✅ NOUVEAU : stocker les DataSets pour mise à jour dynamique
+        this.nodesDataset = new DataSet(nodes);
+        this.edgesDataset = new DataSet(edges);
 
         this.network = new Network(
             this.graphContainer.nativeElement,
-            { nodes: new DataSet(nodes), edges: new DataSet(edges) },
+            { nodes: this.nodesDataset, edges: this.edgesDataset },
             options
         );
 
-        // Clic sur un nœud → afficher info
+        // ✅ MODIFIÉ : clic → afficher info + lancer simulation légère
         this.network.on('click', (params: any) => {
             if (params.nodes.length > 0) {
                 const nodeId = params.nodes[0];
@@ -273,17 +378,267 @@ export class TopologyComponent implements OnInit {
                 if (node) {
                     this.selectedNode = node.serviceData;
                     this.cdr.detectChanges();
+                    this.runSimulation(nodeId);   // ✅ NOUVEAU : lancer la simulation
                 }
             } else {
-                this.selectedNode = null;
+                // ✅ NOUVEAU : clic sur fond → réinitialiser simulation
+                this.selectedNode     = null;
+                this.simulationActive  = false;
+                this.simulationResult  = null;
+                this.simulationLoading = false;
+                this.resetNodeColors();          // ✅ NOUVEAU : remettre couleurs originales
                 this.cdr.detectChanges();
             }
         });
+        setTimeout(() => {
+            this.fitGraph();
+        }, 300);
 
-        // Stabilisation terminée
-        this.network.on('stabilized', () => {
+        this.network.once('stabilized', () => {
             this.network.setOptions({ physics: { enabled: false } });
+            setTimeout(() => {
+                this.fitGraph();
+            }, 100);
         });
+    }
+
+    // ✅ NOUVEAU : lancer la simulation légère sur la topologie
+    runSimulation(serviceId: number): void {
+        this.simulationLoading = true;
+        this.simulationActive  = false;
+        this.simulationResult  = null;
+        this.cdr.detectChanges();
+
+        // ✅ ApiService au lieu de HttpClient direct
+        this.apiService.simulateImpact(serviceId).subscribe({
+            next: (result) => {
+                this.simulationResult  = result;
+                this.simulationActive  = true;
+                this.simulationLoading = false;
+                this.applyImpactColors(serviceId, result);
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                this.simulationLoading = false;
+                this.simulationActive  = false;
+                if (err.status === 500) {
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Aucun impact détecté',
+                        detail: `"${this.selectedNode?.name}" n'a pas de dépendances sortantes.`,
+                        life: 4000
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Erreur simulation',
+                        detail: err?.error?.message || 'Erreur lors de la simulation.',
+                        life: 4000
+                    });
+                }
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    // ✅ Ajouter cette méthode complète après runSimulation()
+
+    applyImpactColors(failedServiceId: number, result: any): void {
+        if (!this.nodesDataset || !this.edgesDataset) return;
+
+        // ImpactDTO retourne List<String> (noms) → chercher les IDs via this.services
+        const impactedIds = new Set<number>(
+            (result.impactedServices || [])
+                .map((name: string) => {
+                    const svc = this.services.find(s => s.name === name);
+                    return svc ? Number(svc.id) : null;
+                })
+                .filter((id: number | null): id is number => id !== null)
+        );
+
+        // ── Mise à jour des nœuds ────────────────────────────
+        const nodeUpdates: any[] = [];
+        this.nodesDataset.forEach((node: any) => {
+            const nId = Number(node.id);
+
+            if (nId === failedServiceId) {
+                // 🔴 Service sélectionné → rouge vif
+                nodeUpdates.push({
+                    id: node.id,
+                    color: {
+                        background: '#DC2626',
+                        border:     '#7F1D1D',
+                        highlight:  { background: '#DC2626', border: '#7F1D1D' }
+                    },
+                    font:        { color: '#FFFFFF', bold: true, size: 20 },
+                    borderWidth: 4,
+                    borderDashes: false
+                });
+            } else if (impactedIds.has(nId)) {
+                // 🟠 Service impacté → orange
+                nodeUpdates.push({
+                    id: node.id,
+                    color: {
+                        background: '#F97316',
+                        border:     '#C2410C',
+                        highlight:  { background: '#FDBA74', border: '#C2410C' }
+                    },
+                    font:        { color: '#FFFFFF', bold: true, size: 20 },
+                    borderWidth: 3,
+                    borderDashes: false
+                });
+            } else {
+                // ⬜ Non impacté → grisé
+                nodeUpdates.push({
+                    id: node.id,
+                    color: {
+                        background: '#E2E8F0',
+                        border:     '#CBD5E1',
+                        highlight:  { background: '#E2E8F0', border: '#94A3B8' }
+                    },
+                    font:        { color: '#94A3B8', bold: false, size: 20 },
+                    borderWidth: 1,
+                    borderDashes: false
+                });
+            }
+        });
+        this.nodesDataset.update(nodeUpdates);
+
+        // ── Mise à jour des arêtes ───────────────────────────
+        const edgeUpdates: any[] = [];
+        this.edgesDataset.forEach((edge: any) => {
+            const fromId = Number(edge.from);
+            const toId   = Number(edge.to);
+
+            if (fromId === failedServiceId || toId === failedServiceId) {
+                // 🔴 Arête du service en panne → rouge
+                edgeUpdates.push({
+                    id:    edge.id,
+                    color: { color: '#EF4444', highlight: '#DC2626' },
+                    width: 3,
+                    dashes: false
+                });
+            } else if (impactedIds.has(fromId) && impactedIds.has(toId)) {
+                // 🟠 Arête entre services impactés → orange
+                edgeUpdates.push({
+                    id:    edge.id,
+                    color: { color: '#F97316', highlight: '#EA580C' },
+                    width: 2,
+                    dashes: false
+                });
+            } else {
+                // ⬜ Arête non concernée → grisée
+                edgeUpdates.push({
+                    id:    edge.id,
+                    color: { color: '#E2E8F0', highlight: '#CBD5E1' },
+                    width: 1,
+                    dashes: false
+                });
+            }
+        });
+        this.edgesDataset.update(edgeUpdates);
+    }
+    //   NOUVEAU : remettre les couleurs originales sans reconstruire le graphe
+    resetNodeColors(): void {
+        if (!this.nodesDataset || !this.edgesDataset) return;
+
+        const shapeMap: any = {
+            'CRITICAL': 'box', 'HIGH': 'diamond',
+            'MEDIUM': 'ellipse', 'LOW': 'ellipse'
+        };
+        const bgColorMap: any = {
+            'CRITICAL': '#FECACA', 'HIGH': '#FED7AA',
+            'MEDIUM': '#BFDBFE',   'LOW':  '#BBF7D0'
+        };
+        const borderColorMap: any = {
+            'CRITICAL': '#DC2626', 'HIGH': '#F97316',
+            'MEDIUM': '#3B82F6',   'LOW':  '#16A34A'
+        };
+        const fontColorMap: any = {
+            'CRITICAL': '#7F1D1D', 'HIGH': '#9A3412',
+            'MEDIUM': '#1E40AF',   'LOW':  '#166534'
+        };
+
+        const nodeUpdates: any[] = [];
+        this.nodesDataset.forEach((node: any) => {
+            const svc    = this.services.find(s => s.id === node.id);
+            if (!svc) return;
+            const tier   = svc.tier || 'MEDIUM';
+            const isDown = svc.status === 'DOWN';
+
+            nodeUpdates.push({
+                id: node.id,
+                color: {
+                    background: bgColorMap[tier] || '#BFDBFE',
+                    border: isDown ? '#EF4444' : (borderColorMap[tier] || '#3B82F6'),
+                    highlight: { background: bgColorMap[tier] || '#BFDBFE', border: '#7C3AED' },
+                    hover:     { background: '#E0E7FF', border: '#4F46E5' }
+                },
+                font: {
+                    color: fontColorMap[tier] || '#1E40AF',
+                    size: 20, face: 'Arial',
+                    bold: isDown || svc.tier === 'CRITICAL'
+                },
+                shape:       shapeMap[tier] || 'ellipse',
+                borderWidth: isDown ? 4 : 1.5,
+                borderDashes: false
+            });
+        });
+        this.nodesDataset.update(nodeUpdates);
+
+        // Remettre les couleurs originales des arêtes
+        const edgeColors: any = {
+            'HIGH':   { color: '#ef4444', width: 3 },
+            'MEDIUM': { color: '#f59e0b', width: 2 },
+            'LOW':    { color: '#10b981', width: 1 }
+        };
+        const edgeUpdates: any[] = [];
+        this.edgesDataset.forEach((edge: any) => {
+            const dep = this.dependencies.find(d => d.id === edge.id);
+            if (!dep) return;
+            const ec = edgeColors[dep.criticality] || edgeColors['MEDIUM'];
+            edgeUpdates.push({
+                id:    edge.id,
+                color: { color: ec.color, highlight: '#7c3aed' },
+                width: ec.width,
+                dashes: dep.dependencyType === 'ASYNC_EVENT'
+            });
+        });
+        this.edgesDataset.update(edgeUpdates);
+    }
+
+    //  NOUVEAU : naviguer vers la page Impact pour l'analyse complète
+    goToImpact(): void {
+        if (this.selectedNode?.id) {
+            this.router.navigate(['/impact'], {
+                queryParams: { serviceId: this.selectedNode.id }
+            });
+        } else {
+            this.router.navigate(['/impact']);
+        }
+    }
+
+    // ✅ NOUVEAU : réinitialiser toute la simulation
+    resetSimulation(): void {
+        this.simulationActive  = false;
+        this.simulationResult  = null;
+        this.simulationLoading = false;
+        this.selectedNode      = null;
+        this.resetNodeColors();
+        this.cdr.detectChanges();
+    }
+
+    // ✅ NOUVEAU : classe PrimeNG severity selon sévérité
+    getSeverityClass(severity: string):
+        'danger' | 'warn' | 'info' | 'success' | 'secondary' | 'contrast' | undefined {
+
+        const map: Record<string, 'danger' | 'warn' | 'info' | 'success'> = {
+            'CRITICAL': 'danger',
+            'HIGH':     'warn',
+            'MEDIUM':   'info',
+            'LOW':      'success'
+        };
+        return map[severity] ?? undefined;
     }
 
     // Appliquer les filtres
@@ -293,9 +648,12 @@ export class TopologyComponent implements OnInit {
 
     // Réinitialiser les filtres
     resetFilters(): void {
-        this.filterTier   = null;
-        this.filterStatus = null;
-        this.selectedNode = null;
+        this.filterTier    = null;
+        this.filterStatus  = null;
+        this.selectedNode  = null;
+        this.simulationActive  = false;  // ✅ NOUVEAU
+        this.simulationResult  = null;   // ✅ NOUVEAU
+        this.simulationLoading = false;  // ✅ NOUVEAU
         setTimeout(() => this.buildGraph(), 100);
     }
 
@@ -308,7 +666,10 @@ export class TopologyComponent implements OnInit {
 
     // Recharger les données
     refresh(): void {
-        this.selectedNode = null;
+        this.selectedNode      = null;
+        this.simulationActive  = false;  // ✅ NOUVEAU
+        this.simulationResult  = null;   // ✅ NOUVEAU
+        this.simulationLoading = false;  // ✅ NOUVEAU
         this.loadData();
     }
 

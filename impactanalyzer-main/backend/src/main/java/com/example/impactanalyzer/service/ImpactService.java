@@ -132,6 +132,7 @@ public class ImpactService {
 
         long totalServices = serviceRepository.count();
         long totalClients  = clientRepository.count();
+        long maxImpactedServices = Math.max(totalServices - 1, 0);
         double maxPossible = (totalServices * 4 * 3) + (totalClients * 2);
         double impactScore = maxPossible > 0
                 ? Math.min((weightedScore / maxPossible) * 100, 100)
@@ -152,7 +153,7 @@ public class ImpactService {
         dto.setImpactedClients(
                 impactedClientSet.stream().map(Client::getName).toList()
         );
-        dto.setImpactScore(impactScore);
+        dto.setImpactScore(Math.round(impactScore * 10.0) / 10.0);
         dto.setTotalServicesImpacted(impactedServiceNames.size());
         dto.setTotalClientsImpacted(impactedClientSet.size());
         dto.setImpactPaths(impactPaths);

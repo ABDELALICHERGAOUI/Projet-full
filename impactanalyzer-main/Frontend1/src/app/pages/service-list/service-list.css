@@ -212,10 +212,10 @@
 }
 
 /* ── Agrandir dialog de confirmation ──────────────── */
-
+/*
 :host ::ng-deep .p-confirmdialog {
-    width: 6000px !important;
-    min-width: 680px;
+    width: min(560px, 95vw) !important;
+    min-width: auto !important;
 }
 
 :host ::ng-deep .p-confirmdialog .p-dialog-header {
@@ -255,6 +255,44 @@
     padding: 0.65rem 1.5rem !important;
     height: 2.75rem;
     min-width: 100px;
+}
+*/
+:host ::ng-deep .p-confirmdialog {
+    width: min(560px, 95vw) !important;
+    min-width: auto !important;
+}
+
+:host ::ng-deep .p-confirmdialog .p-dialog-header {
+    padding: 1.5rem 2rem !important;
+}
+
+:host ::ng-deep .p-confirmdialog .p-dialog-title {
+    font-size: 1.2rem !important;
+    font-weight: 700;
+}
+
+:host ::ng-deep .p-confirmdialog .p-dialog-content {
+    padding: 1.5rem 2rem !important;
+    font-size: 1rem !important;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+
+:host ::ng-deep .p-confirmdialog .p-confirmdialog-icon {
+    font-size: 2rem !important;
+    color: #f59e0b;
+    margin-right: 0.75rem;
+}
+
+:host ::ng-deep .p-confirmdialog .p-dialog-footer {
+    padding: 1rem 2rem !important;
+    gap: 0.75rem;
+}
+
+:host ::ng-deep .p-confirmdialog .p-dialog-footer .p-button {
+    font-size: 1rem !important;
+    padding: 0.65rem 1.5rem !important;
+    min-width: 110px;
 }
 /* ── Toast notifications plus grandes ─────────────── */
 
@@ -389,3 +427,582 @@
     border-bottom: 1px solid #f1f5f9;
 }
 .error-item i { color: #f59e0b; }
+/* =========================================================
+   SDIA — Page Services : même design que Gestion Clients
+   Compatible Sakai / PrimeNG
+   ========================================================= */
+
+:host {
+    display: block;
+    font-size: 16px;
+}
+
+/* Carte principale */
+.card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    padding: 1.5rem;
+}
+
+/* Header de page */
+.services-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.services-title-block {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.services-title-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--primary-color) 14%, white);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+}
+
+.services-title-block h2 {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -0.02em;
+}
+
+.services-title-block p {
+    margin: 0.25rem 0 0;
+    font-size: 1rem;
+    color: #64748b;
+}
+
+.services-main-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Bouton Nouveau Service : couleur dynamique du thème */
+:host ::ng-deep .new-service-btn .p-button {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 0.75rem 1.15rem;
+}
+
+:host ::ng-deep .new-service-btn .p-button:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+}
+
+/* Caption table */
+.table-caption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0 1rem;
+}
+
+.table-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.table-subtitle {
+    margin: 0.25rem 0 0;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+.table-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.search-field {
+    min-width: 280px;
+}
+
+/* Inputs */
+:host ::ng-deep .p-inputtext {
+    height: 2.8rem;
+    border-radius: 11px;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+}
+
+:host ::ng-deep .p-inputtext:enabled:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 18%, transparent);
+}
+
+/* Boutons */
+:host ::ng-deep .p-button {
+    border-radius: 11px;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: all 0.18s ease;
+}
+
+:host ::ng-deep .p-button:hover {
+    transform: translateY(-1px);
+}
+
+/* Bouton Supprimer */
+:host ::ng-deep .p-button-danger.p-button-outlined {
+    color: #ef4444;
+    border-color: #fecaca;
+    background: #fff7f7;
+}
+
+:host ::ng-deep .p-button-danger.p-button-outlined:hover {
+    background: #fee2e2;
+    border-color: #ef4444;
+}
+
+/* Boutons Import / Export */
+:host ::ng-deep .p-button-secondary.p-button-outlined {
+    background: #f8fafc;
+    border-color: #dbe3f0;
+    color: #334155;
+}
+
+:host ::ng-deep .p-button-secondary.p-button-outlined:hover {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+    color: #1e40af;
+}
+
+/* =========================================================
+   Tableau Services
+   ========================================================= */
+
+:host ::ng-deep .p-datatable-wrapper {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow-x: auto;
+}
+
+:host ::ng-deep .p-datatable-table {
+    min-width: 1180px;
+}
+
+/* Titres du tableau : Nom, Description, Tier... */
+:host ::ng-deep .p-datatable-thead > tr > th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 1rem 0.9rem;
+    border-bottom: 1px solid #dbe3f0;
+    white-space: nowrap;
+}
+
+/* Lignes du tableau */
+:host ::ng-deep .p-datatable-tbody > tr > td {
+    padding: 0.95rem 0.9rem;
+    font-size: 1rem;
+    color: #1e293b;
+    border-bottom: 1px solid #edf2f7;
+    vertical-align: middle;
+}
+
+/* Nom du service en gras */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(2) {
+    font-weight: 700;
+    color: #172554;
+}
+
+/* Hover */
+:host ::ng-deep .p-datatable-tbody > tr:hover {
+    background: #f8fafc;
+}
+
+/* Alternance légère */
+:host ::ng-deep .p-datatable-tbody > tr:nth-child(even) {
+    background: #fcfdff;
+}
+
+/* Tags Tier / Status */
+:host ::ng-deep .p-tag {
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    padding: 0.35rem 0.6rem;
+}
+
+/* Bouton dépendances */
+:host ::ng-deep td .p-button-secondary.p-button-outlined {
+    border-radius: 9px;
+    font-weight: 700;
+}
+
+/* Boutons actions */
+:host ::ng-deep .p-button.p-button-rounded {
+    width: 2.35rem;
+    height: 2.35rem;
+}
+
+/* Pagination */
+:host ::ng-deep .p-paginator {
+    border: 0;
+    padding: 1rem 0 0.25rem;
+    font-size: 0.95rem;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-page.p-highlight {
+    background: color-mix(in srgb, var(--primary-color) 16%, white);
+    color: var(--primary-color);
+    font-weight: 800;
+}
+
+/* =========================================================
+   Dialog dépendances
+   ========================================================= */
+
+.dep-graph-container {
+    width: 100%;
+    height: 300px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.graph-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    flex-wrap: wrap;
+}
+
+.legend-title,
+.legend-section {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.dep-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    transition: background 0.15s, transform 0.15s;
+}
+
+.dep-item:hover {
+    background: #f8fafc;
+    transform: translateX(2px);
+}
+
+/* =========================================================
+   Dialog résultat import CSV
+   ========================================================= */
+
+.import-stat-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 12px;
+    gap: 0.25rem;
+}
+
+.import-stat-card.success {
+    background: #dcfce7;
+    border: 1px solid #16a34a;
+}
+
+.import-stat-card.warning {
+    background: #fef9c3;
+    border: 1px solid #ca8a04;
+}
+
+.import-stat-card.danger {
+    background: #fee2e2;
+    border: 1px solid #dc2626;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.import-stat-card.success .stat-number {
+    color: #16a34a;
+}
+
+.import-stat-card.warning .stat-number {
+    color: #ca8a04;
+}
+
+.import-stat-card.danger .stat-number {
+    color: #dc2626;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+/* Messages erreur import */
+.error-list {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.error-item {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.45rem 0;
+    font-size: 0.9rem;
+    color: #64748b;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.error-item i {
+    color: #f59e0b;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .services-header,
+    .table-caption {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .services-main-actions,
+    .table-actions {
+        justify-content: flex-start;
+    }
+
+    .search-field {
+        min-width: 100%;
+    }
+}
+/* =========================================================
+   Dialog Dépendances — version professionnelle
+   ========================================================= */
+
+:host ::ng-deep .dep-dialog .p-dialog {
+    max-height: 92vh;
+}
+
+:host ::ng-deep .dep-dialog .p-dialog-header {
+    padding: 1.25rem 1.5rem 0.75rem 1.5rem !important;
+}
+
+:host ::ng-deep .dep-dialog .p-dialog-title {
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    color: #1e293b;
+}
+
+:host ::ng-deep .dep-dialog .p-dialog-content {
+    padding: 0.75rem 1.5rem 1rem 1.5rem !important;
+    overflow-y: auto;
+}
+
+:host ::ng-deep .dep-dialog .p-dialog-footer {
+    padding: 0.75rem 1.5rem 1rem 1.5rem !important;
+}
+
+/* Barre haut : info + bouton */
+.dep-dialog-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.dep-dialog-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #475569;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.dep-dialog-hint i {
+    color: var(--primary-color);
+}
+
+/* Bouton Ajouter une dépendance : couleur thème */
+:host ::ng-deep .add-dependency-btn .p-button {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 0.75rem 1.15rem;
+}
+
+:host ::ng-deep .add-dependency-btn .p-button:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+}
+
+/* Graphe dépendances plus lisible */
+.dep-graph-container {
+    width: 100%;
+    height: 440px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+/* Légende visible et compacte */
+.graph-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-top: 0.75rem !important;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    flex-wrap: wrap;
+}
+
+.legend-title,
+.legend-section {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #334155;
+}
+
+.legend-items {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.legend-line {
+    display: inline-block;
+    width: 26px;
+    height: 3px;
+    border-radius: 2px;
+}
+
+/* Titre liste */
+:host ::ng-deep .dep-dialog h4 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+/* Liste des dépendances */
+.dep-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.95rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    transition: background 0.15s, transform 0.15s;
+}
+
+.dep-item:hover {
+    background: #f8fafc;
+    transform: translateX(2px);
+}
+
+.dep-item .font-semibold {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Tags dans la liste */
+:host ::ng-deep .dep-dialog .p-tag {
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    padding: 0.35rem 0.6rem;
+}
+
+/* Dialog import CSV : éviter conflit avec stat-card */
+.import-stat-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 12px;
+    gap: 0.25rem;
+}
+
+.import-stat-card.success {
+    background: #dcfce7;
+    border: 1px solid #16a34a;
+}
+
+.import-stat-card.warning {
+    background: #fef9c3;
+    border: 1px solid #ca8a04;
+}
+
+.import-stat-card.danger {
+    background: #fee2e2;
+    border: 1px solid #dc2626;
+}

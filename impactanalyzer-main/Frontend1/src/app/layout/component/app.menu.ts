@@ -25,7 +25,7 @@ export class AppMenu {
         this.model = [
             {
                 label: 'Home',
-                items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
+                items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/pages/dashboard'] }]
             },
             {
                 label: 'GESTION',
@@ -38,13 +38,23 @@ export class AppMenu {
             {
                 label: 'ANALYSE',
                 items: [
-                    { label: 'Impact',       icon: 'pi pi-fw pi-chart-bar',routerLink: ['/pages/impact'] },
-                    { label: 'Topologie', icon: 'pi pi-fw pi-share-alt',routerLink: ['/pages/topology'] },
-                    { label: 'Rapports',  icon: 'pi pi-fw pi-chart-bar',
-                        routerLink: ['/pages/reports'] },
-
+                    {
+                        label: 'Impact',
+                        icon: 'pi pi-fw pi-bolt',
+                        routerLink: ['/pages/impact']
+                    },
+                    {
+                        label: 'Topologie',
+                        icon: 'pi pi-fw pi-share-alt',
+                        routerLink: ['/pages/topology']
+                    },
+                    {
+                        label: 'Rapports',
+                        icon: 'pi pi-fw pi-chart-bar',
+                        routerLink: ['/pages/reports']
+                    }
                 ]
-            },
+            }
         ];
     }
 }

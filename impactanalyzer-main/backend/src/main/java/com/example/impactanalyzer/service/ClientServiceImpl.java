@@ -6,6 +6,9 @@ import com.example.impactanalyzer.enums.ClientSegment;
 import com.example.impactanalyzer.repository.ClientRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.impactanalyzer.dto.ClientDeleteInfoDTO;
+import com.example.impactanalyzer.repository.ClientServiceRepository;
+import jakarta.transaction.Transactional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,13 +22,18 @@ public class ClientServiceImpl {
 
 
     private final ClientRepository repository;
+    private final ClientServiceRepository clientServiceRepository;
+
     private static final String[] REQUIRED_HEADERS =
             {"name", "email", "segment", "region"};
 
-    public ClientServiceImpl(ClientRepository repository) {
+    public ClientServiceImpl(
+            ClientRepository repository,
+            ClientServiceRepository clientServiceRepository
+    ) {
         this.repository = repository;
+        this.clientServiceRepository = clientServiceRepository;
     }
-
 
     public List<Client> getAllClients() {
         return repository.findAll();
@@ -63,14 +71,25 @@ public class ClientServiceImpl {
         return repository.save(client);
     }
 
-    public void deleteClient(Long id) {
-        Client client = getClientById(id);
-        repository.delete(client);
-    }
-    public void deleteAllById(List<Long> ids) {
-        repository.deleteAllById(ids);
-    }
+    @Transactional
+    public void deleteClient(Long id, boolean force) {
+        getClientById(id);
 
+        long serviceAssociations = clientServiceRepository.countByClientId(id);
+
+        if (serviceAssociations > 0 && !force) {
+            throw new RuntimeException("CLIENT_HAS_RELATIONS");
+        }
+
+        clientServiceRepository.deleteByClientId(id);
+        repository.deleteById(id);
+    }
+    @Transactional
+    public void deleteAllById(List<Long> ids, boolean force) {
+        for (Long id : ids) {
+            deleteClient(id, force);
+        }
+    }
 
     // ── Import CSV ────────────────────────────────────
 
@@ -240,5 +259,16 @@ public class ClientServiceImpl {
     private String getValueSafe(String[] values, int index) {
         if (index < 0 || index >= values.length) return "";
         return values[index] == null ? "" : values[index].trim();
+    }
+
+    public ClientDeleteInfoDTO getClientDeleteInfo(Long id) {
+        getClientById(id);
+
+        long serviceAssociations = clientServiceRepository.countByClientId(id);
+
+        return new ClientDeleteInfoDTO(
+                serviceAssociations > 0,
+                serviceAssociations
+        );
     }
 }

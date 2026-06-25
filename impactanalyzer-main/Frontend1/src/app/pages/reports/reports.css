@@ -1,25 +1,320 @@
+/* Header */
+.reports-header {
+    margin-bottom: 1rem !important;
+    padding: 1.35rem 1.6rem;
+    border-radius: 16px;
+}
+
+.reports-title-block {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .report-header-icon {
-    width: 60px; height: 60px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        color-mix(in srgb, var(--primary-color) 70%, #111827)
+    );
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--primary-color) 25%, transparent);
     flex-shrink: 0;
+}
+
+.report-header-icon i {
+    font-size: 1.8rem;
+    color: #fff;
+}
+
+.reports-header h2 {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 850;
+    color: #1e293b;
+    letter-spacing: -0.02em;
+}
+
+.reports-header p {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    font-size: 1rem;
+}
+
+/* Tabs */
+:host ::ng-deep .reports-tabs .p-tablist {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-bottom: none;
+    border-radius: 14px 14px 0 0;
+    padding: 0 1rem;
+}
+
+:host ::ng-deep .reports-tabs .p-tab {
+    padding: 1rem 1.15rem;
+    font-weight: 700;
+}
+
+:host ::ng-deep .reports-tabs .p-tabpanels {
+    padding: 1rem;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 0 0 14px 14px;
+}
+
+/* Summary cards */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.summary-card {
+    min-height: 112px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.summary-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.summary-card.danger .summary-icon {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.summary-card.warning .summary-icon {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.summary-card.orange .summary-icon {
+    background: #ffedd5;
+    color: #f97316;
+}
+
+.summary-card.purple .summary-icon {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.summary-card.info .summary-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.summary-label {
+    font-size: 0.86rem;
+    color: #64748b;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.summary-value {
+    font-size: 1.55rem;
+    font-weight: 850;
+    color: #172554;
+    line-height: 1.15;
+}
+
+.summary-sub {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+/* Layout graphique + lecture rapide */
+.analysis-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2.15fr) minmax(320px, 0.85fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.analysis-chart-card,
+.quick-reading-card,
+.report-table-card {
+    border-radius: 14px;
+    margin-bottom: 0 !important;
+}
+
+.analysis-chart-card {
+    padding: 1.15rem 1.3rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.85rem;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 850;
+    color: #1e293b;
+}
+
+.section-header p {
+    margin: 0.35rem 0 0;
+    font-size: 0.92rem;
+    color: #64748b;
+}
+
+.chart-box {
+    height: 300px;
+}
+
+.chart-loading {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: #64748b;
+}
+
+.chart-loading i {
+    color: var(--primary-color);
+    font-size: 1.4rem;
+}
+
+/* Lecture rapide */
+.quick-reading-card {
+    padding: 1.15rem 1.25rem;
+    background:
+        linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(16, 185, 129, 0.06)),
+        #fff;
+    border: 1px solid #e2e8f0;
+}
+
+.quick-reading-card h4 {
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6d28d9;
+    font-size: 1.15rem;
+    font-weight: 850;
+}
+
+.quick-reading-card p {
+    color: #334155;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.quick-reading-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.quick-reading-card li {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.dot.danger {
+    background: #ef4444;
+}
+
+.dot.warning {
+    background: #f59e0b;
+}
+
+.dot.purple {
+    background: #7c3aed;
+}
+
+.method-box {
+    border-top: 1px solid #ddd6fe;
+    padding-top: 0.85rem;
+    margin-top: 0.85rem;
+}
+
+.method-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 850;
+    color: #6d28d9;
+    margin-bottom: 0.35rem;
+}
+
+.method-box p {
+    margin: 0;
+    color: #475569;
+    font-size: 0.85rem;
+}
+
+/* Table */
+.report-table-card {
+    padding: 1rem 1.1rem;
+}
+
+.table-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.85rem;
+}
+
+.search-field {
+    min-width: 280px;
+}
+
+.service-name {
+    font-weight: 750;
+    color: #172554;
 }
 
 /* Rank badge */
 .rank-badge {
-    width: 28px; height: 28px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 0.8rem;
-    background: var(--surface-border);
-    color: var(--text-color-secondary);
+    background: #e2e8f0;
+    color: #64748b;
 }
 
 .rank-badge.rank-top {
@@ -31,21 +326,21 @@
 .score-bar-container {
     display: flex;
     align-items: center;
-    gap: 8px;
-    min-width: 150px;
+    gap: 0.55rem;
+    min-width: 160px;
 }
 
 .score-bar {
     height: 8px;
-    border-radius: 4px;
+    border-radius: 999px;
     transition: width 0.5s ease;
     min-width: 4px;
 }
 
 .score-text {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-color);
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: #1e293b;
     white-space: nowrap;
 }
 
@@ -54,10 +349,82 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px; height: 28px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--primary-color);
     color: white;
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 800;
+}
+
+/* PrimeNG table */
+:host ::ng-deep .p-datatable-wrapper {
+    overflow-x: auto;
+}
+
+:host ::ng-deep .p-datatable-thead > tr > th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 0.92rem;
+    font-weight: 850;
+    padding: 0.9rem 0.85rem;
+    border-bottom: 1px solid #dbe3f0;
+    white-space: nowrap;
+}
+
+:host ::ng-deep .p-datatable-tbody > tr > td {
+    padding: 0.85rem 0.85rem;
+    font-size: 0.94rem;
+    color: #1e293b;
+    border-bottom: 1px solid #edf2f7;
+    vertical-align: middle;
+}
+
+:host ::ng-deep .p-datatable-tbody > tr:hover {
+    background: #f8fafc;
+}
+
+:host ::ng-deep .p-tag {
+    font-weight: 850;
+}
+
+:host ::ng-deep .p-button.p-button-sm {
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+/* Responsive */
+@media (max-width: 1300px) {
+    .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .analysis-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .reports-title-block {
+        align-items: flex-start;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .table-toolbar {
+        justify-content: stretch;
+    }
+
+    .search-field {
+        width: 100%;
+        min-width: 0;
+    }
 }

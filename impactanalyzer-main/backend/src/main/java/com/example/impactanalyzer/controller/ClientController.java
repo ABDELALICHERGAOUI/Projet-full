@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.impactanalyzer.dto.ClientDeleteInfoDTO;
 
 import java.util.List;
 
@@ -51,15 +52,25 @@ public class ClientController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteClient(@PathVariable Long id) {
-        clientService.deleteClient(id);
+    public ResponseEntity<Void> deleteClient(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean force
+    ) {
+        clientService.deleteClient(id, force);
+        return ResponseEntity.noContent().build();
+    }
+    @DeleteMapping("/batch")
+    public ResponseEntity<Void> deleteMultiple(
+            @RequestBody List<Long> ids,
+            @RequestParam(defaultValue = "false") boolean force
+    ) {
+        clientService.deleteAllById(ids, force);
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/batch")
-    public ResponseEntity<?> deleteMultiple(@RequestBody List<Long> ids) {
-        clientService.deleteAllById(ids);
-        return ResponseEntity.ok().build();
+    @GetMapping("/{id}/delete-info")
+    public ClientDeleteInfoDTO getDeleteInfo(@PathVariable Long id) {
+        return clientService.getClientDeleteInfo(id);
     }
     @PostMapping(
             value = "/import/csv",

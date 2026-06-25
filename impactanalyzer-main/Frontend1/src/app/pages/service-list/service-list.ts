@@ -5,14 +5,12 @@ import { Component, OnInit, ChangeDetectorRef,
 import { ApiService } from '../../services/api.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToolbarModule } from 'primeng/toolbar';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
@@ -22,7 +20,7 @@ import { TagModule } from 'primeng/tag';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DividerModule } from 'primeng/divider';
 import { TooltipModule } from 'primeng/tooltip';
-
+import { forkJoin } from 'rxjs';
 
 @Component({
     selector: 'app-service-list',
@@ -30,7 +28,7 @@ import { TooltipModule } from 'primeng/tooltip';
     imports: [
         CommonModule, FormsModule,
         TableModule, ButtonModule, DialogModule,
-        InputTextModule, ToolbarModule, ToastModule,
+        InputTextModule, ToastModule,
         ConfirmDialogModule, SelectModule,
         IconFieldModule, InputIconModule,
         TagModule, InputNumberModule, DividerModule,TooltipModule
@@ -163,45 +161,6 @@ export class ServiceListComponent implements OnInit {
         this.submitted = false;
     }
 
-    /*handleSubmit() {
-        this.submitted = true;
-        if (!this.formService.name || !this.formService.description) return;
-        const url = this.isEditMode
-            ? `${this.apiUrl}/services/${this.selectedServiceId}`
-            : `${this.apiUrl}/services`;
-        const method = this.isEditMode ? 'put' : 'post';
-        this.http[method](url, this.formService).subscribe({
-            next: () => {
-                this.closeServiceModal();
-                this.loadServices();
-        // ✅ Message différent selon ajout ou modification
-        if (this.isEditMode) {
-            this.messageService.add({
-                severity: 'success',
-                summary: '✅ Service modifié',
-                detail: `Le service "${this.formService.name}" a été mis à jour avec succès.`,
-                life: 4000
-            });
-        } else {
-            this.messageService.add({
-                severity: 'success',
-                summary: '✅ Service ajouté',
-                detail: `Le service "${this.formService.name}" a été ajouté avec succès.`,
-                life: 4000
-            });
-        }
-    },
-    error: (err) => {
-        // ✅ Message erreur
-        this.messageService.add({
-            severity: 'error',
-            summary: '❌ Erreur',
-            detail: err?.error?.message || 'Une erreur est survenue. Veuillez réessayer.',
-        life: 5000
-    });
-}
-});
-}*/
     handleSubmit() {
         this.submitted = true;
         if (!this.formService.name || !this.formService.description) return;
@@ -254,52 +213,100 @@ export class ServiceListComponent implements OnInit {
         });
     }
     deleteService(service: any) {
-        this.confirmationService.confirm({
-            message: `Êtes-vous sûr de vouloir supprimer "${service.name}" ?`,
-            header: 'Confirmer la suppression',
-            icon: 'pi pi-exclamation-triangle',
-            accept: () => {
-                this.apiService.deleteService(service.id).subscribe({
-                    next: () => {
-                        this.loadServices();
-                        // ✅ Message succès suppression
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: '🗑️ Service supprimé',
-                            detail: `Le service "${service.name}" a été supprimé avec succès.`,
-                            life: 4000
-                        });
-                    },
-                    error: () => {
-                        // ✅ Message erreur suppression
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: '❌ Erreur',
-                            detail: 'Erreur lors de la suppression du service.',
-                            life: 5000
+        this.apiService.getServiceDeleteInfo(service.id).subscribe({
+            next: (info) => {
+                let message = `Êtes-vous sûr de vouloir supprimer le service "${service.name}" ?`;
+
+                if (info.hasRelations) {
+                    message =
+                        `Le service "${service.name}" possède des relations avec d'autres éléments :\n\n` +
+                        `- ${info.clientAssociations} association(s) avec des clients\n` +
+                        `- ${info.dependencies} dépendance(s)\n\n` +
+                        `Si vous continuez, ces relations seront supprimées aussi. Voulez-vous vraiment supprimer ce service ?`;
+                }
+
+                this.confirmationService.confirm({
+                    message: message,
+                    header: 'Confirmer la suppression',
+                    icon: 'pi pi-exclamation-triangle',
+                    acceptLabel: 'Oui, supprimer',
+                    rejectLabel: 'Annuler',
+                    acceptButtonStyleClass: 'p-button-danger',
+                    rejectButtonStyleClass: 'p-button-text',
+
+                    accept: () => {
+                        this.apiService.deleteService(service.id, true).subscribe({
+                            next: () => {
+                                this.loadServices();
+
+                                this.messageService.add({
+                                    severity: 'success',
+                                    summary: 'Service supprimé',
+                                    detail: `Le service "${service.name}" a été supprimé avec ses relations.`,
+                                    life: 4000
+                                });
+                            },
+                            error: (err) => {
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: 'Erreur',
+                                    detail: err?.error?.message || 'Erreur lors de la suppression du service.',
+                                    life: 5000
+                                });
+                            }
                         });
                     }
+                });
+            },
+            error: (err) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Erreur',
+                    detail: err?.error?.message || 'Impossible de vérifier les relations du service.',
+                    life: 5000
                 });
             }
         });
     }
     deleteSelectedServices() {
+        if (!this.selectedServices || this.selectedServices.length === 0) return;
+
         this.confirmationService.confirm({
-            message: `Supprimer ${this.selectedServices.length} services ?`,
-            header: 'Confirmer',
+            message:
+                `Vous allez supprimer ${this.selectedServices.length} service(s).\n\n` +
+                `Les associations clients et les dépendances liées à ces services seront également supprimées. Voulez-vous continuer ?`,
+            header: 'Confirmer la suppression multiple',
             icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Oui, supprimer',
+            rejectLabel: 'Annuler',
+            acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-text',
+
             accept: () => {
-                Promise.all(
-                    this.selectedServices.map(s =>
-                        this.apiService.deleteService(s.id).toPromise()  // ✅ ApiService
-                    )
-                ).then(() => {
-                    this.selectedServices = [];
-                    this.loadServices();
-                    this.messageService.add({
-                        severity: 'success', summary: 'Supprimés',
-                        detail: 'Services supprimés', life: 3000
-                    });
+                const requests = this.selectedServices.map(service =>
+                    this.apiService.deleteService(service.id, true)
+                );
+
+                forkJoin(requests).subscribe({
+                    next: () => {
+                        this.selectedServices = [];
+                        this.loadServices();
+
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Services supprimés',
+                            detail: 'Les services sélectionnés ont été supprimés avec leurs relations.',
+                            life: 4000
+                        });
+                    },
+                    error: (err) => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Erreur',
+                            detail: err?.error?.message || 'Erreur lors de la suppression multiple.',
+                            life: 5000
+                        });
+                    }
                 });
             }
         });
@@ -368,12 +375,39 @@ export class ServiceListComponent implements OnInit {
         const edges: any[] = [];
 
         // Nœud principal
+        const primaryColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--primary-color')
+            .trim() || '#8b5cf6';
+
         nodes.push({
             id: this.currentService.id,
             label: this.currentService.name,
-            color: { background: '#6366f1', border: '#4338ca' },
-            font: { color: '#fff', bold: true },
-            shape: 'box', size: 25
+            color: {
+                background: primaryColor,
+                border: primaryColor,
+                highlight: {
+                    background: primaryColor,
+                    border: '#4c1d95'
+                }
+            },
+            font: {
+                color: '#ffffff',
+                bold: true,
+                size: 18,
+                face: 'Arial'
+            },
+            shape: 'box',
+            size: 45,
+            margin: {
+                top: 10,
+                right: 16,
+                bottom: 10,
+                left: 16
+            },
+            widthConstraint: {
+                minimum: 150,
+                maximum: 230
+            }
         });
 
         // Couleurs des flèches selon criticité
@@ -390,9 +424,36 @@ export class ServiceListComponent implements OnInit {
             nodes.push({
                 id: depService.id,
                 label: depService.name,
-                color: { background: '#64748b', border: '#475569' },
-                font: { color: '#fff' },
+                color: {
+                    background: '#eff6ff',
+                    border: '#3b82f6',
+                    highlight: {
+                        background: '#dbeafe',
+                        border: primaryColor
+                    },
+                    hover: {
+                        background: '#dbeafe',
+                        border: primaryColor
+                    }
+                },
+                font: {
+                    color: '#1e40af',
+                    size: 16,
+                    bold: true,
+                    face: 'Arial'
+                },
                 shape: 'ellipse',
+                size: 40,
+                margin: {
+                    top: 8,
+                    right: 14,
+                    bottom: 8,
+                    left: 14
+                },
+                widthConstraint: {
+                    minimum: 140,
+                    maximum: 220
+                },
                 title: `Type: ${dep.dependencyType}\nCriticité: ${dep.criticality}`
             });
 
@@ -401,13 +462,22 @@ export class ServiceListComponent implements OnInit {
             edges.push({
                 from: this.currentService.id,
                 to: depService.id,
-                arrows: 'to',
-                // ✅ Label = type de dépendance
+
                 label: dep.dependencyType,
-                font: { size: 11, color: '#374151', strokeWidth: 2, strokeColor: '#fff' },
-                // ✅ Couleur selon criticité
                 color: { color: arrowColor, highlight: arrowColor },
-                width: dep.criticality === 'HIGH' ? 3 : 2,
+                arrows: {
+                    to: {
+                        enabled: true,
+                        scaleFactor: 1.25
+                    }
+                },
+                font: {
+                    size: 13,
+                    color: '#374151',
+                    strokeWidth: 3,
+                    strokeColor: '#ffffff'
+                },
+                width: dep.criticality === 'HIGH' ? 4 : 3,
                 dashes: dep.dependencyType === 'ASYNC_EVENT'  // ✅ pointillés pour async
             });
         });
@@ -417,14 +487,32 @@ export class ServiceListComponent implements OnInit {
                 hierarchical: {
                     direction: 'LR',
                     sortMethod: 'directed',
-                    levelSeparation: 200,
-                    nodeSpacing: 120
+                    levelSeparation: 230,
+                    nodeSpacing: 150
+                }
+            },
+
+            nodes: {
+                font: {
+                    size: 16,
+                    face: 'Arial'
+                }
+            },
+            edges: {
+                smooth: {
+                    enabled: true,
+                    type: 'cubicBezier',
+                    roundness: 0.4
+                },
+                arrows: {
+                    to: {
+                        enabled: true,
+                        scaleFactor: 1.25
+                    }
                 }
             },
             physics: { enabled: false },
-            edges: {
-                smooth: { enabled: true, type: 'cubicBezier', roundness: 0.4 }
-            }
+
         };
 
         this.network = new Network(
