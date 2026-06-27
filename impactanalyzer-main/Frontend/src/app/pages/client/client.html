@@ -128,6 +128,19 @@
                         severity="secondary"
                         [outlined]="true"
                         (onClick)="triggerImport()" />
+                    <p-button
+                        label="Importer associations CSV"
+                        icon="pi pi-link"
+                        severity="secondary"
+                        [outlined]="true"
+                        (onClick)="triggerClientServiceImport()" />
+
+                    <!-- ✅ Ajouter l'input file caché (si pas déjà présent) -->
+                    <input #csvClientServiceInput
+                           type="file"
+                           accept=".csv"
+                           style="display:none"
+                           (change)="onClientServiceFileSelected($event)" />
 
                     <p-button
                         label="Exporter CSV"

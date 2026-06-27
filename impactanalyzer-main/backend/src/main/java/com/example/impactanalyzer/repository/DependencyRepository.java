@@ -1,6 +1,7 @@
 package com.example.impactanalyzer.repository;
 
 import com.example.impactanalyzer.entity.Dependency;
+import com.example.impactanalyzer.entity.ServiceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -8,10 +9,10 @@ import org.springframework.data.repository.query.Param;
 
 
 import java.util.List;
-
 public interface DependencyRepository extends JpaRepository<Dependency, Long> {
 
     List<Dependency> findByDependsOnId(Long serviceId);
+
     @Query("""
            SELECT COUNT(d)
            FROM Dependency d
@@ -28,4 +29,7 @@ public interface DependencyRepository extends JpaRepository<Dependency, Long> {
            """)
     void deleteByServiceInDependencies(@Param("serviceId") Long serviceId);
 
+    // ✅ AJOUTER : vérifier si une dépendance existe déjà (éviter doublons)
+    boolean existsByServiceAndDependsOn(ServiceEntity service,
+                                        ServiceEntity dependsOn);
 }

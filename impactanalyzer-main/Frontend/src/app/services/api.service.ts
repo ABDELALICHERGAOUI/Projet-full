@@ -170,7 +170,20 @@ export class ApiService {
         formData.append('file', file, file.name);
         return this.http.post<any>(`${this.baseUrl}/services/import/csv`, formData);
     }
-
+    importDependencies(file: File): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.http.post<any>(
+            `${this.baseUrl}/dependencies/import/csv`, formData
+        );
+    }
+    importClientServices(file: File): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.http.post<any>(
+            `${this.baseUrl}/client-services/import/csv`, formData
+        );
+    }
 
 
 }

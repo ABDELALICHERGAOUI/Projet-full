@@ -166,8 +166,18 @@ export class ServiceListComponent implements OnInit {
         if (!this.formService.name || !this.formService.description) return;
 
         // ✅ Convertir sla en string pour le backend (ServiceEntity.sla = String)
-        const payload = {
+        /*const payload = {
             ...this.formService,
+            sla: this.formService.sla != null
+                ? this.formService.sla.toString()
+                : null
+        };*/
+        const payload = {
+            name:        this.formService.name,
+            description: this.formService.description,
+            tier:        this.formService.tier,
+            ownerTeam:   this.formService.ownerTeam,
+            status:      this.formService.status,
             sla: this.formService.sla != null
                 ? this.formService.sla.toString()
                 : null
@@ -652,6 +662,63 @@ export class ServiceListComponent implements OnInit {
                     detail: err?.error?.errorMessages?.[0]
                         || err?.error?.message
                         || 'Erreur lors de l\'import.',
+                    life: 5000
+                });
+            }
+        });
+    }
+
+    // ✅ Ajouter ces 2 méthodes
+    triggerDepImport(): void {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv';
+        input.onchange = (e: any) => {
+            const file = e.target.files[0];
+            if (file) this.sendDepImport(file);
+        };
+        input.click();
+    }
+    // ✅ Après — utilise apiService + même pattern que sendImport()
+    sendDepImport(file: File): void {
+        this.importLoading = true;
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Import en cours...',
+            detail: `Envoi de "${file.name}" vers le serveur...`,
+            life: 2000
+        });
+
+        this.apiService.importDependencies(file).subscribe({  // ✅ apiService
+            next: (result) => {
+                this.importLoading    = false;
+                this.importResult     = result;
+                this.importResultDialog = true;
+                this.loadServices();  // refresh les compteurs de dépendances
+
+                if (result.imported > 0) {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: '✅ Import dépendances',
+                        detail: `${result.imported} dépendance(s) importée(s) avec succès.`,
+                        life: 4000
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: '⚠️ Aucun import',
+                        detail: 'Aucune dépendance importée. Vérifiez le fichier.',
+                        life: 5000
+                    });
+                }
+            },
+            error: (err) => {
+                this.importLoading = false;
+                this.messageService.add({
+                    severity: 'error',
+                    summary: '❌ Erreur import',
+                    detail: err?.error?.message || 'Erreur lors de l\'import.',
                     life: 5000
                 });
             }

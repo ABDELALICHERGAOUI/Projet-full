@@ -77,15 +77,23 @@
 }
 
 /* Layout principal : gauche | graphe | droite */
-.topo-layout {
+/*.topo-layout {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr) 310px;
     gap: 12px;
     align-items: stretch;
 
-    /* Évite le grand scroll vertical */
+    /* Évite le grand scroll vertical
     height: calc(100vh - 275px);
     min-height: 500px;
+}*/
+.topo-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr) 260px;
+    gap: 10px;
+    align-items: stretch;
+    height: calc(100vh - 255px);
+    min-height: 580px;
 }
 
 /* Colonne gauche : filtres + légende */
@@ -366,3 +374,89 @@
         font-size: 0.85rem;
     }
 }
+/* ── Bouton d'agrandissement du graphe ───────────────── */
+
+.graph-toolbar {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 20;
+    display: flex;
+    gap: 8px;
+}
+
+/* Mode graphe agrandi */
+.topo-layout.graph-expanded {
+    grid-template-columns: 1fr !important;
+    height: calc(100vh - 230px) !important;
+    min-height: 650px !important;
+}
+
+/* En mode agrandi, on masque les colonnes gauche et droite */
+.topo-layout.graph-expanded .topo-sidebar,
+.topo-layout.graph-expanded .topo-details-panel {
+    display: none !important;
+}
+
+/* Le graphe prend toute la largeur */
+.topo-layout.graph-expanded .topo-main {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+/* La carte du graphe devient plus grande */
+.topo-layout.graph-expanded .topo-graph-card {
+    height: calc(100vh - 230px) !important;
+    min-height: 650px !important;
+}
+
+/* Le conteneur du graphe prend toute la carte */
+.topo-layout.graph-expanded .topo-graph-container {
+    width: 100%;
+    height: 100%;
+}
+
+/* ── Mode graphe agrandi : plus d'espace pour la soutenance ───────── */
+
+.topo-layout.graph-expanded {
+    grid-template-columns: 1fr !important;
+    height: calc(100vh - 155px) !important;
+    min-height: 760px !important;
+}
+
+/* Masquer les colonnes gauche et droite en mode agrandi */
+.topo-layout.graph-expanded .topo-sidebar,
+.topo-layout.graph-expanded .topo-details-panel {
+    display: none !important;
+}
+
+/* Le graphe prend toute la largeur disponible */
+.topo-layout.graph-expanded .topo-main {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+/* Carte du graphe plus grande */
+.topo-layout.graph-expanded .topo-graph-card {
+    height: calc(100vh - 155px) !important;
+    min-height: 760px !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+/* Conteneur du graphe */
+.topo-layout.graph-expanded .topo-graph-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Bouton Agrandir / Réduire */
+.graph-toolbar {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 30;
+}
+
+

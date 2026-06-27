@@ -1,6 +1,8 @@
 package com.example.impactanalyzer.repository;
 
+import com.example.impactanalyzer.entity.Client;
 import com.example.impactanalyzer.entity.ClientService;
+import com.example.impactanalyzer.entity.ServiceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Modifying;
@@ -27,5 +29,7 @@ public interface ClientServiceRepository extends JpaRepository<ClientService, Lo
     @Modifying
     @Query("DELETE FROM ClientService cs WHERE cs.service.id = :serviceId")
     void deleteByServiceId(@Param("serviceId") Long serviceId);
+    boolean existsByClientAndService(Client client, ServiceEntity service);
+
 
 }

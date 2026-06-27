@@ -43,13 +43,13 @@
                         <i class="pi pi-cog"></i>
                     </div>
                     <div>
-                        <div class="kpi-label">Services total</div>
+                        <div class="kpi-label">Services</div>
                         <div class="kpi-value">{{ stats.totalServices }}</div>
                     </div>
                 </div>
 
                 <p-tag
-                    [value]="stats.criticalServices + ' critiques'"
+                    [value]="stats.criticalServices + ' CRITICAL/HIGH '"
                     severity="danger" />
             </div>
 

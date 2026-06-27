@@ -76,6 +76,12 @@
                         severity="secondary"
                         [outlined]="true"
                         (onClick)="triggerImport()" />
+                    <p-button
+                        label="Importer dépendances CSV"
+                        icon="pi pi-share-alt"
+                        severity="secondary"
+                        [outlined]="true"
+                        (onClick)="triggerDepImport()" />
 
                     <p-button
                         label="Exporter CSV"
@@ -83,6 +89,7 @@
                         severity="secondary"
                         [outlined]="true"
                         (onClick)="exportCSV()" />
+
                 </div>
             </div>
         </ng-template>

@@ -1,13 +1,16 @@
 package com.example.impactanalyzer.controller;
 
 import com.example.impactanalyzer.dto.DependencyDTO;
+import com.example.impactanalyzer.dto.ImportResultDTO;
 import com.example.impactanalyzer.entity.Dependency;
 import com.example.impactanalyzer.service.DependencyServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -47,5 +50,11 @@ public class DependencyController {
     @Operation(summary = "Supprimer une dépendance")
     public void deleteDependency(@PathVariable Long id) {
         dependencyService.deleteDependency(id);
+    }
+
+    @PostMapping("/import/csv")
+    public ResponseEntity<ImportResultDTO> importCsv(
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(dependencyService.importFromCsv(file));
     }
 }

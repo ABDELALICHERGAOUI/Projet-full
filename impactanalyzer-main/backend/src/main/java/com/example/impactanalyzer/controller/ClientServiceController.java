@@ -5,7 +5,10 @@ import com.example.impactanalyzer.service.ClientServiceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.example.impactanalyzer.dto.ImportResultDTO;
 
 import java.util.List;
 
@@ -39,4 +42,12 @@ public class ClientServiceController {
     public void delete(@PathVariable Long id) {
         clientServiceService.delete(id);
     }
+
+    @PostMapping("/import/csv")
+    @Operation(summary = "Importer les associations client-service depuis un CSV")
+    public ResponseEntity<ImportResultDTO> importCsv(
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(clientServiceService.importFromCsv(file));
+    }
+
 }

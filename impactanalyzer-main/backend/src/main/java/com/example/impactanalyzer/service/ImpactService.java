@@ -100,10 +100,20 @@ public class ImpactService {
             }
         }
 
-        // ── 6. Calcul du score pondéré ───────────────────────
-        double weightedScore = 0.0;
+// ── 6. Calcul du score pondéré ───────────────────────
+// Formule : 50% gravité services + 30% clients + 20% propagation
+
+        List<ServiceEntity> allServices = serviceRepository.findAll();
+        List<Client> allClients = clientRepository.findAll();
+
+
+// ✅ Dimension 1 — gravité des services impactés
+// On calcule seulement les services impactés par propagation.
+// Le service en panne est affiché séparément.
+        double weightedImpacted = 0.0;
 
         for (ServiceEntity svc : impactedServiceEntities) {
+
             int tierWeight = switch (svc.getTier()) {
                 case CRITICAL -> 4;
                 case HIGH     -> 3;
@@ -112,38 +122,87 @@ public class ImpactService {
             };
 
             Long parentId = parent.get(svc.getId());
-            int critWeight = 2;
+
+            int critWeight = 2; // MEDIUM par défaut
+
             if (parentId != null) {
-                DependencyCriticality crit = edgeCriticality
-                        .getOrDefault(parentId + "->" + svc.getId(),
-                                DependencyCriticality.MEDIUM);
+                DependencyCriticality crit = edgeCriticality.getOrDefault(
+                        parentId + "->" + svc.getId(),
+                        DependencyCriticality.MEDIUM
+                );
+
                 critWeight = switch (crit) {
                     case HIGH   -> 3;
                     case MEDIUM -> 2;
                     case LOW    -> 1;
                 };
             }
-            weightedScore += tierWeight * critWeight;
+
+            weightedImpacted += tierWeight * critWeight;
         }
 
-        for (Client c : impactedClientSet) {
-            weightedScore += (c.getSegment() == ClientSegment.VIP) ? 2 : 1;
-        }
 
-        long totalServices = serviceRepository.count();
-        long totalClients  = clientRepository.count();
-        long maxImpactedServices = Math.max(totalServices - 1, 0);
-        double maxPossible = (totalServices * 4 * 3) + (totalClients * 2);
-        double impactScore = maxPossible > 0
-                ? Math.min((weightedScore / maxPossible) * 100, 100)
+// ✅ Dénominateur basé sur les poids réels des services
+        double weightedTotal = allServices.stream()
+                .mapToDouble(s -> {
+                    int tierWeight = switch (s.getTier()) {
+                        case CRITICAL -> 4;
+                        case HIGH     -> 3;
+                        case MEDIUM   -> 2;
+                        case LOW      -> 1;
+                    };
+                    return tierWeight * 3.0;
+                })
+                .sum();
+
+        double dim1 = weightedTotal > 0
+                ? Math.min((weightedImpacted / weightedTotal) * 100.0, 100.0)
                 : 0.0;
 
+
+// ✅ Dimension 2 — clients affectés
+        double clientImpacted = impactedClientSet.stream()
+                .mapToDouble(c -> c.getSegment() == ClientSegment.VIP ? 2.0 : 1.0)
+                .sum();
+
+        double clientMax = allClients.stream()
+                .mapToDouble(c -> c.getSegment() == ClientSegment.VIP ? 2.0 : 1.0)
+                .sum();
+
+        double dim2 = clientMax > 0
+                ? Math.min((clientImpacted / clientMax) * 100.0, 100.0)
+                : 0.0;
+
+
+// ✅ Dimension 3 — propagation
+// visited contient seulement les services impactés, car serviceId a été retiré
+        long totalServices = allServices.size();
+
+        double dim3 = totalServices > 1
+                ? Math.min(((double) visited.size() / (totalServices - 1)) * 100.0, 100.0)
+                : 0.0;
+
+
+// ✅ Score final pondéré
+        double impactScore = (dim1 * 0.50) + (dim2 * 0.30) + (dim3 * 0.20);
+        impactScore = Math.min(impactScore, 100.0);
+
+
+// ✅ Cas spécial : aucun service et aucun client n'est impacté
+        if (impactedServiceEntities.isEmpty() && impactedClientSet.isEmpty()) {
+            impactScore = 0.0;
+        }
+
+
+// ✅ Sévérité
         String severity;
-        if      (impactScore == 0)       severity = "NONE";
-        else if (impactScore <= 25)      severity = "LOW";
-        else if (impactScore <= 50)      severity = "MEDIUM";
-        else if (impactScore <= 75)      severity = "HIGH";
-        else                             severity = "CRITICAL";
+        if      (impactScore == 0)    severity = "NONE";
+        else if (impactScore <= 25)   severity = "LOW";
+        else if (impactScore <= 50)   severity = "MEDIUM";
+        else if (impactScore <= 75)   severity = "HIGH";
+        else                          severity = "CRITICAL";
+
+
 
         // ── 7. Construire le DTO ─────────────────────────────
         ImpactDTO dto = new ImpactDTO();

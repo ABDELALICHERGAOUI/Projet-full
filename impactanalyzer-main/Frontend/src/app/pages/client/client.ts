@@ -647,4 +647,68 @@ export class ClientComponent implements OnInit {
             }
         });
     }
+    // ✅ Ajouter le ViewChild
+    @ViewChild('csvClientServiceInput') csvClientServiceInput!: ElementRef;
+
+// ✅ Ajouter les 3 méthodes
+
+    triggerClientServiceImport(): void {
+        this.csvClientServiceInput.nativeElement.value = '';
+        this.csvClientServiceInput.nativeElement.click();
+    }
+
+    onClientServiceFileSelected(event: any): void {
+        const file: File = event.target.files[0];
+        if (!file) return;
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Format invalide',
+                detail: 'Veuillez sélectionner un fichier .csv',
+                life: 4000
+            });
+            return;
+        }
+        this.sendClientServiceImport(file);
+    }
+
+    sendClientServiceImport(file: File): void {
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Import en cours...',
+            detail: `Envoi de "${file.name}"...`,
+            life: 2000
+        });
+
+        this.apiService.importClientServices(file).subscribe({
+            next: (result) => {
+                this.importResult       = result;
+                this.importResultDialog = true;  // ← même dialog que import clients
+
+                if (result.imported > 0) {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: '✅ Import associations',
+                        detail: `${result.imported} association(s) importée(s).`,
+                        life: 4000
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: '⚠️ Aucun import',
+                        detail: 'Aucune association importée. Vérifiez le fichier.',
+                        life: 5000
+                    });
+                }
+            },
+            error: (err) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: '❌ Erreur import',
+                    detail: err?.error?.message || 'Erreur lors de l\'import.',
+                    life: 5000
+                });
+            }
+        });
+    }
 }

@@ -112,7 +112,7 @@
 </div>
 
 <!-- Layout principal : gauche | graphe | droite -->
-<div class="topo-layout">
+<div class="topo-layout" [class.graph-expanded]="graphExpanded">
 
     <!-- Colonne gauche : filtres + légende -->
     <aside class="topo-sidebar">
@@ -179,13 +179,13 @@
                     CRITICAL
                 </div>
 
+
                 <div class="legend-item">
                     <span style="background:#FED7AA; border:2px solid #F97316;
-                                 display:inline-block; width:12px; height:12px;
-                                 transform:rotate(45deg); margin-right:10px; margin-left:2px"></span>
-                    HIGH
+                     display:inline-block; width:18px; height:11px;
+                     border-radius:50%; margin-right:6px"></span>
+                     HIGH
                 </div>
-
                 <div class="legend-item">
                     <span style="background:#BFDBFE; border:2px solid #3B82F6;
                                  display:inline-block; width:18px; height:11px;
@@ -283,7 +283,15 @@
     <!-- Zone centrale : graphe -->
     <main class="topo-main">
         <div class="card topo-graph-card">
-
+            <div class="graph-toolbar">
+                <p-button
+                    [icon]="graphExpanded ? 'pi pi-window-minimize' : 'pi pi-window-maximize'"
+                    [label]="graphExpanded ? 'Réduire' : 'Agrandir'"
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    (onClick)="toggleGraphExpanded()" />
+            </div>
             @if (isLoading) {
                 <div class="flex align-items-center justify-content-center h-full gap-3">
                     <i class="pi pi-spin pi-spinner"

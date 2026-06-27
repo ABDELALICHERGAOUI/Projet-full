@@ -78,7 +78,7 @@ export class TopologyComponent implements OnInit {
     simulationActive  = false;
     simulationLoading = false;
     simulationResult: any = null;
-
+    graphExpanded = false;
     constructor(
         private http: HttpClient,
         private messageService: MessageService,
@@ -152,7 +152,7 @@ export class TopologyComponent implements OnInit {
 
         const shapeMap: any = {
             'CRITICAL': 'box',
-            'HIGH':     'diamond',
+            'HIGH':     'ellipse',
             'MEDIUM':   'ellipse',
             'LOW':      'ellipse'
         };
@@ -204,18 +204,6 @@ export class TopologyComponent implements OnInit {
                         border: '#4F46E5'
                     }
                 },
-                /*font: {
-                    color: fontColorMap[tier] || '#1E40AF',
-                    size: 20,
-                    face: 'Arial',
-                    bold: isDown || service.tier === 'CRITICAL'
-                },
-                shape: shapeMap[tier] || 'ellipse',
-                borderWidth: isDown ? 4 : 1.5,
-                borderDashes: false,
-                size: 90,
-                widthConstraint: { minimum: 160, maximum: 280 },
-                serviceData: service*/
                 font: {
                     color: fontColorMap[tier] || '#1E40AF',
                     size: 14,
@@ -269,43 +257,10 @@ export class TopologyComponent implements OnInit {
                     type: 'curvedCW',
                     roundness: 0.18
                 }
-                /*smooth: { enabled: true, type: 'cubicBezier', roundness: 0.3 }*/
 
             });
         });
-
         /*const options: Options = {
-            layout: { improvedLayout: true },
-            nodes: {
-                size: 55,
-                font: { size: 20, face: 'Arial' },
-                margin: { top: 16, right: 22, bottom: 16, left: 22 }
-            },
-            edges: {
-                font: { size: 11 },
-                smooth: { enabled: true, type: 'dynamic', roundness: 0.3 }
-            },
-            physics: {
-                enabled: true,
-                solver: 'forceAtlas2Based',
-                forceAtlas2Based: {
-                    gravitationalConstant: -80,
-                    centralGravity: 0.01,
-                    springLength: 250,
-                    springConstant: 0.08,
-                    damping: 0.4
-                },
-                stabilization: { iterations: 200, updateInterval: 25 }
-            },
-            interaction: {
-                hover: true,
-                tooltipDelay: 150,
-                navigationButtons: true,
-                keyboard: true,
-                zoomView: true
-            }
-        };*/
-        const options: Options = {
             layout: {
                 improvedLayout: true
             },
@@ -358,6 +313,78 @@ export class TopologyComponent implements OnInit {
                 zoomView: true,
                 dragView: true
             }
+        };*/
+        const options: Options = {
+            layout: {
+                improvedLayout: true
+            },
+
+            nodes: {
+                size: 24,
+                shape: 'box',
+                font: {
+                    size: 12,
+                    face: 'Arial',
+                    multi: true
+                },
+                margin: {
+                    top: 8,
+                    right: 10,
+                    bottom: 8,
+                    left: 10
+                },
+                widthConstraint: {
+                    minimum: 90,
+                    maximum: 150
+                }
+            },
+
+            edges: {
+                arrows: {
+                    to: {
+                        enabled: true,
+                        scaleFactor: 0.7
+                    }
+                },
+                font: {
+                    size: 9,
+                    color: '#64748b',
+                    strokeWidth: 3,
+                    strokeColor: '#ffffff'
+                },
+                smooth: {
+                    enabled: true,
+                    type: 'dynamic',
+                    roundness: 0.35
+                }
+            },
+
+            physics: {
+                enabled: true,
+                solver: 'repulsion',
+                repulsion: {
+                    nodeDistance: 260,
+                    centralGravity: 0.05,
+                    springLength: 230,
+                    springConstant: 0.03,
+                    damping: 0.60
+                },
+                stabilization: {
+                    enabled: true,
+                    iterations: 600,
+                    updateInterval: 30,
+                    fit: true
+                }
+            },
+
+            interaction: {
+                hover: true,
+                tooltipDelay: 150,
+                navigationButtons: true,
+                keyboard: true,
+                zoomView: true,
+                dragView: true
+            }
         };
 
         // ✅ NOUVEAU : stocker les DataSets pour mise à jour dynamique
@@ -398,7 +425,7 @@ export class TopologyComponent implements OnInit {
             this.network.setOptions({ physics: { enabled: false } });
             setTimeout(() => {
                 this.fitGraph();
-            }, 100);
+            }, 500);
         });
     }
 
@@ -543,7 +570,7 @@ export class TopologyComponent implements OnInit {
         if (!this.nodesDataset || !this.edgesDataset) return;
 
         const shapeMap: any = {
-            'CRITICAL': 'box', 'HIGH': 'diamond',
+            'CRITICAL': 'box', 'HIGH': 'ellipse',
             'MEDIUM': 'ellipse', 'LOW': 'ellipse'
         };
         const bgColorMap: any = {
@@ -610,11 +637,11 @@ export class TopologyComponent implements OnInit {
     //  NOUVEAU : naviguer vers la page Impact pour l'analyse complète
     goToImpact(): void {
         if (this.selectedNode?.id) {
-            this.router.navigate(['/impact'], {
+            this.router.navigate(['/pages/impact'], {
                 queryParams: { serviceId: this.selectedNode.id }
             });
         } else {
-            this.router.navigate(['/impact']);
+            this.router.navigate(['/pages/impact']);
         }
     }
 
@@ -679,5 +706,131 @@ export class TopologyComponent implements OnInit {
             'MEDIUM': 'info', 'LOW': 'success'
         };
         return map[tier] || 'info';
+    }
+    toggleGraphExpanded(): void {
+        this.graphExpanded = !this.graphExpanded;
+        this.cdr.detectChanges();
+
+        setTimeout(() => {
+            this.applyGraphDisplayMode();
+        }, 150);
+    }
+    private applyGraphDisplayMode(): void {
+        if (!this.network || !this.nodesDataset || !this.edgesDataset) return;
+
+        const expanded = this.graphExpanded;
+
+        /* ── 1. Agrandir / réduire les nœuds ───────────────────── */
+        const nodeUpdates: any[] = [];
+
+        this.nodesDataset.forEach((node: any) => {
+            nodeUpdates.push({
+                id: node.id,
+
+                font: {
+                    ...(node.font || {}),
+                    size: expanded ? 18 : 14,
+                    face: 'Arial',
+                    bold: node.font?.bold ?? false
+                },
+
+                size: expanded ? 44 : 32,
+
+                margin: {
+                    top: expanded ? 16 : 10,
+                    right: expanded ? 22 : 16,
+                    bottom: expanded ? 16 : 10,
+                    left: expanded ? 22 : 16
+                },
+
+                widthConstraint: {
+                    minimum: expanded ? 145 : 110,
+                    maximum: expanded ? 260 : 190
+                }
+            });
+        });
+
+        this.nodesDataset.update(nodeUpdates);
+
+
+        /* ── 2. Agrandir / réduire les flèches ─────────────────── */
+        const edgeUpdates: any[] = [];
+
+        this.edgesDataset.forEach((edge: any) => {
+            const dep = this.dependencies.find(d => d.id === edge.id);
+
+            let baseWidth = 2;
+            if (dep?.criticality === 'HIGH') baseWidth = 3;
+            if (dep?.criticality === 'MEDIUM') baseWidth = 2;
+            if (dep?.criticality === 'LOW') baseWidth = 1;
+
+            edgeUpdates.push({
+                id: edge.id,
+
+                width: expanded ? baseWidth + 1.3 : baseWidth,
+
+                font: {
+                    ...(edge.font || {}),
+                    size: expanded ? 13 : 11,
+                    strokeWidth: expanded ? 4 : 3,
+                    strokeColor: '#ffffff'
+                },
+
+                arrows: {
+                    to: {
+                        enabled: true,
+                        scaleFactor: expanded ? 1.1 : 0.8
+                    }
+                },
+
+                smooth: {
+                    enabled: true,
+                    type: 'dynamic',
+                    roundness: expanded ? 0.45 : 0.25
+                }
+            });
+        });
+
+        this.edgesDataset.update(edgeUpdates);
+
+
+        /* ── 3. Recalculer l'organisation du graphe ────────────── */
+        this.network.setOptions({
+            physics: {
+                enabled: true,
+                solver: 'repulsion',
+                repulsion: {
+                    nodeDistance: expanded ? 380 : 250,
+                    centralGravity: expanded ? 0.03 : 0.06,
+                    springLength: expanded ? 330 : 230,
+                    springConstant: expanded ? 0.02 : 0.035,
+                    damping: 0.65
+                },
+                stabilization: {
+                    enabled: true,
+                    iterations: expanded ? 900 : 450,
+                    updateInterval: 30,
+                    fit: true
+                }
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 150,
+                navigationButtons: true,
+                keyboard: true,
+                zoomView: true,
+                dragView: true
+            }
+        });
+
+        this.network.stabilize(expanded ? 900 : 450);
+
+        this.network.once('stabilized', () => {
+            this.network.setOptions({ physics: { enabled: false } });
+
+            setTimeout(() => {
+                this.fitGraph();
+            }, 200);
+        });
     }
 }
